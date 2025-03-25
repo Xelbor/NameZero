@@ -9,6 +9,6 @@ Until the firmware is [released](https://github.com/Xelbor/NameZero/releases), I
 At this point in time, the firmware has only been tested on CardPuter. In subsequent releases, separate firmware files for other devices will be introduced.
 
 # Communication
-Also, if have a desire to help and have devices from M5Stack or Lilygo(t-embed and other), then I ask you help me with testing firmware(xelbor45hail@gmail.com). Thanks!
+Also, if have a desire to help and have other devices from M5Stack or Lilygo(t-embed and other), then I ask you help me with testing firmware(xelbor45hail@gmail.com). Thanks!
 
 # Screenshots
