@@ -4,6 +4,6 @@ NameZero - is a firmware for Esp32 family devices. This firmware until not ready
 
 # How to install this?
 
-Until the firmware is released, I dont publish .bin files. You can build it yourself.
+Until the firmware is [released](https://github.com/Xelbor/NameZero/releases), I dont publish `.bin` files. You can build it yourself.
 
 # Screenshots
