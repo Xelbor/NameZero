@@ -324,7 +324,8 @@ MenuItem mainMenuItems[] = {
   { "RFID", &bitmap_icons[0], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "NFC", &bitmap_icons[0], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "IButton", &bitmap_icons[1], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
-  { "Scripts", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
+  { "Files", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
+  //{ "Scripts", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "Others", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "Settings", &bitmap_icons[13], settingsSubMenu, sizeof(settingsSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr }
 };
