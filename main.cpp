@@ -95,10 +95,11 @@ void drawMenu(MenuItem* menu, int menuSize) {
 
     M5Cardputer.Display.drawLine(0, 24, 240, 24, MAINCOLOR);  // Limitter Line
 
-    int start_index = (menuSize > 6) ? (item_selected - display_items / 2 + menuSize) % menuSize : 0;
-    int y_offset = 29;
+    int start_index;
+    int x_offset = 40;  // Начальная кордината оси x
+    int y_offset = 29;  // Начальная кордината оси y
 
-    if (menuSize > 6) {
+    if (menuSize > display_items - 1) {
         start_index = item_selected - display_items / 2;
         if (start_index < 0) {
             start_index += menuSize;
@@ -110,13 +111,11 @@ void drawMenu(MenuItem* menu, int menuSize) {
     for (int i = 0; i < min(display_items, menuSize); i++) {;
         int current_index;
 
-        if (menuSize > 6) {
+        if (menuSize > display_items - 1) {
             current_index = (start_index + i) % menuSize;
         } else {
             current_index = start_index + i;
         }
-
-        int x_offset = 40;
 
         String itemText = menu[current_index].name;
 

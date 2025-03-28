@@ -278,6 +278,8 @@ MenuItem deauthSubMenu[] {
 };
 
 MenuItem wifiSubMenu[] = {
+  //{ "Connect to Wi-Fi", nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "AP", &bitmap_icons[7], nullptr, 0, &wifi_softAP, nullptr, [](){ return getBoolStatus(wifi_softAP); }, true, &startSoftAP },
   { "Deauth", &bitmap_icons[7], deauthSubMenu, sizeof(deauthSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
   { "Beacon", &bitmap_icons[18], attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_beacon_spamer, nullptr, nullptr, false, nullptr},
   { "Probe", &bitmap_icons[24], attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_probe_spamer, nullptr, nullptr, false, nullptr},
@@ -309,8 +311,6 @@ MenuItem bleSettingsMenu[] {
 };
 
 MenuItem settingsSubMenu[] {
-  { "Wi-Fi", &bitmap_icons[7], wifiSettingsMenu, sizeof(wifiSettingsMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
-  { "Bluetooth", &bitmap_icons[8], bleSettingsMenu, sizeof(bleSettingsMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr},
   { "System Info", &bitmap_icons[17], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "GPIO", &bitmap_icons[14], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "SD", &bitmap_icons[15], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
