@@ -513,5 +513,5 @@ extern "C" {
         M5Cardputer.update();
         handleKeyboard();
         
-        delay(100);
+        delay(50);
     }
