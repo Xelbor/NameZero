@@ -4,6 +4,10 @@ extern "C" {
     
     //#include "wifi/configure_wifi.h"
     }
+
+    #include <driver/adc.h>
+    #include <esp_adc_cal.h>
+    #include <soc/adc_channel.h>
     
     #include "gui.h"
     //#include "wifi/wifi.h"
@@ -19,6 +23,8 @@ extern "C" {
     #define TAG "NameZero"
     
     #define MAINCOLOR TFT_ORANGE
+    #define TFT_BL 38
+    #define MINBRIGHT 160
     
     //TaskHandle_t handleEncoderTask;
     //TaskHandle_t redrawTaskHandle;
@@ -42,6 +48,15 @@ extern "C" {
     int parentMenuSize = 0; // Получаем количество пунктов родительского меню
     
     int display_items = 5;    // Количиство отображаемых пунктов на одной странице
+
+    void setBrightness(uint8_t brightval) {
+        if(brightval == 0){
+          analogWrite(TFT_BL, brightval);
+        } else {
+          int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval /100 ));
+          analogWrite(TFT_BL, bl);
+        }
+    }
     
     void startMenu() {
         M5Cardputer.Display.clear();
@@ -68,6 +83,29 @@ extern "C" {
     
         M5Cardputer.Display.drawString("NameZero", screenWidth * 0.03, screenHeight * 0.03);
     }
+
+    int getBatteryProcents() {
+        uint8_t percent;
+        uint8_t _batAdcCh = ADC1_GPIO10_CHANNEL;
+        uint8_t _batAdcUnit = 1;
+    
+        adc1_config_width(ADC_WIDTH_BIT_12);
+        adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_11);
+        static esp_adc_cal_characteristics_t* adc_chars = nullptr;
+        static constexpr int BASE_VOLATAGE = 3600;
+        adc_chars = (esp_adc_cal_characteristics_t*)calloc(1, sizeof(esp_adc_cal_characteristics_t));
+        esp_adc_cal_characterize((adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars);
+        int raw;
+        raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
+        uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
+    
+        float mv = volt * 2;
+        percent = (mv - 3300) * 100 / (float)(4150 - 3350);
+    
+        return  (percent < 0) ? 0
+            : (percent >= 100) ? 100
+            :  percent;
+    }
     
     void drawMenu(MenuItem* menu, int menuSize) {
         M5Cardputer.Display.clear();
@@ -79,7 +117,12 @@ extern "C" {
     
         drawUpperMenu();
     
-        M5Cardputer.Display.drawBitmap(210, 7, image_battery_icon_bits, 24, 16, MAINCOLOR);
+        M5Cardputer.Display.drawBitmap(210, 7, image_battery_empty_bits, 24, 16, MAINCOLOR);
+        M5Cardputer.Display.fillRect(215, 10, 18 * getBatteryProcents() / 100, 9, MAINCOLOR);
+        M5Cardputer.Display.setFreeFont();
+        M5Cardputer.Display.setTextSize(0.5);
+        M5Cardputer.Display.setTextColor(TFT_ORANGE);
+        M5Cardputer.Display.drawString(String(getBatteryProcents()), 200, 18);
         
         if (!wifi_softAP) {
             M5Cardputer.Display.drawBitmap(210 - 22, 7, image_disabled_wifi_icon_bits, 19, 16, MAINCOLOR);
@@ -180,7 +223,7 @@ extern "C" {
     void drawAttackMenu() {
         attackMenu = true;
         drawUpperMenu();
-        M5Cardputer.Display.drawBitmap(250, 28, image_battery_icon_bits, 24, 16, MAINCOLOR);
+        M5Cardputer.Display.drawBitmap(250, 28, image_battery_empty_bits, 24, 16, MAINCOLOR);
         if (!wifi_softAP) {
             M5Cardputer.Display.drawBitmap(228, 28, image_disabled_wifi_icon_bits, 19, 16, MAINCOLOR);
         } else {
@@ -439,6 +482,7 @@ extern "C" {
         M5Cardputer.Display.clear();
         M5Cardputer.Display.setRotation(1);
         M5Cardputer.Display.setTextColor(MAINCOLOR);
+        setBrightness(255);
     
         /*
         ESP_ERROR_CHECK(esp_netif_init());
@@ -468,5 +512,6 @@ extern "C" {
     void loop() {
         M5Cardputer.update();
         handleKeyboard();
-        delay(50);
+        
+        delay(100);
     }
