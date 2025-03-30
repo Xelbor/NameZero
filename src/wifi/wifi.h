@@ -13,14 +13,16 @@ extern "C" {
 #include "lwip/sys.h"
 }
 
+#include <Arduino.h>
 #include "packet.hpp"
 #include <cstring>
 
-#define WIFI_SSID "NameZero"
-#define WIFI_PASS "12345678"
 #define WIFI_CHANNEL 1
 #define MAX_STA_CONN 4
 #define MAX_APs 20
+
+const char *WIFI_SSID = "NameZero";
+const char *WIFI_PASS = "12345678";
 
 PacketSender sender;
 
@@ -42,15 +44,19 @@ uint16_t wifi_ap_count = 0;
 static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_id == WIFI_EVENT_AP_STACONNECTED) {
         auto* event = static_cast<wifi_event_ap_staconnected_t*>(event_data);
-        ESP_LOGI(wifiManagerTAG, "Station " MACSTR " joined, AID=%d", MAC2STR(event->mac), event->aid);
+        Serial.printf(wifiManagerTAG, "Station " MACSTR " joined, AID=%d", MAC2STR(event->mac), event->aid);
     } else if (event_id == WIFI_EVENT_AP_STADISCONNECTED) {
         auto* event = static_cast<wifi_event_ap_stadisconnected_t*>(event_data);
-        ESP_LOGI(wifiManagerTAG, "Station " MACSTR " left, AID=%d", MAC2STR(event->mac), event->aid);
+        Serial.printf(wifiManagerTAG, "Station " MACSTR " left, AID=%d", MAC2STR(event->mac), event->aid);
     }
 }
 
 extern "C" int ieee80211_raw_frame_sanity_check(int32_t arg, int32_t arg2, int32_t arg3) {
   return 0;
+}
+
+extern "C" int lwip_hook_ip6_input(void *arg) {  // For Cardputer
+    return 0;
 }
 
 void wifi_init_softap() {
@@ -72,7 +78,7 @@ void wifi_init_softap() {
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(wifiManagerTAG, "Wi-Fi AP started. SSID: %s, Password: %s, Channel: %d", WIFI_SSID, WIFI_PASS, WIFI_CHANNEL);
+    Serial.printf("Wi-Fi AP started. SSID: %s, Password: %s, Channel: %d\n", WIFI_SSID, WIFI_PASS, WIFI_CHANNEL);
 }
 
 void wifi_scan(void) {

@@ -34,8 +34,15 @@ M5Canvas canvas(&M5Cardputer.Display);
 MenuItem* currentMenu = mainMenuItems; // Текущее меню
 MenuItem* parentMenu = nullptr; // Саб-меню
 
+std::vector<String> terminalHistory;
+
+String cmd = "";
+String dirPath = "/$:";
+
 bool attackIsRunning = false;
 bool needsRedraw = false;
+
+bool isTerminal = false;
 
 int item_selected = 0; // which item in the menu is selected
 int parentSelected = 0;
@@ -52,6 +59,7 @@ void setBrightness(int bright) {
     analogWrite(TFT_BL, bright);
 }
 
+/*
 uint8_t getBatteryProcents() {
     uint8_t bat_adc_ch = ADC1_GPIO10_CHANNEL;  // Канал ADC1
     adc1_config_width(ADC_WIDTH_BIT_12);
@@ -68,7 +76,7 @@ uint8_t getBatteryProcents() {
     // Расчет процентов
     uint8_t percent = (bat_voltage - 3300) * 100 / (4150 - 3350);
     return percent;
-}
+}*/
 
 void startMenu() {
     M5Cardputer.Display.clear();
@@ -97,10 +105,14 @@ void drawUpperMenu() {
     M5Cardputer.Display.drawBitmap(210, 7, image_battery_empty_bits, 24, 16, MAINCOLOR);
     M5Cardputer.Display.fillRect(215, 10, 17, 9, MAINCOLOR);
     M5Cardputer.Display.fillRect(212, 13, 3, 3, MAINCOLOR);
+    
+    if (wifi_softAP) M5Cardputer.Display.drawBitmap(166, 7, image_wifi5_icon_bits, 19, 16, MAINCOLOR);
+    if (ble_server) M5Cardputer.Display.drawBitmap(150, 7, image_bluetooth_on_icon_bits, 14, 16, MAINCOLOR);
 
     M5Cardputer.Display.setTextSize(1);
-    M5Cardputer.Display.setFreeFont(&Org_01);
+    M5Cardputer.Display.setFont(&Org_01);
     M5Cardputer.Display.drawString("100%", 188, 12);
+    M5Cardputer.Display.drawLine(0, 24, 240, 24, MAINCOLOR);  // Limitter Line
 }
 
 void drawMenu(MenuItem* menu, int menuSize) {
@@ -112,13 +124,7 @@ void drawMenu(MenuItem* menu, int menuSize) {
     int screenHeight = M5Cardputer.Display.height();
 
     drawUpperMenu();
-
     M5Cardputer.Display.setTextColor(MAINCOLOR);
-    
-    if (wifi_softAP) M5Cardputer.Display.drawBitmap(166, 7, image_wifi5_icon_bits, 19, 16, MAINCOLOR);
-    if (ble_server) M5Cardputer.Display.drawBitmap(150, 7, image_bluetooth_on_icon_bits, 14, 16, MAINCOLOR);
-
-    M5Cardputer.Display.drawLine(0, 24, 240, 24, MAINCOLOR);  // Limitter Line
 
     int start_index;
     int x_offset = 40;  // Начальная кордината оси x
@@ -203,13 +209,139 @@ void drawMenu(MenuItem* menu, int menuSize) {
 }
 
 void drawAttackMenu() {
-    attackMenu = true;
+    appsMenu = true;
     drawUpperMenu();
 
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawString("The Attack has been", 25, 109);
     M5Cardputer.Display.drawString("started", 100, 130);
     M5Cardputer.Display.drawBitmap(131, 150, image_EviSmile_bits, 18, 21, MAINCOLOR);
+}
+
+void printToTerminal(const String& text) {
+    const int maxLines = 7;
+    terminalHistory.push_back(text);
+
+    // Ограничиваем количество строк
+    if (terminalHistory.size() > maxLines) {
+        terminalHistory.erase(terminalHistory.begin());
+    }
+
+    M5Cardputer.Display.fillRect(4, 30, M5Cardputer.Display.width() - 8, 85, BLACK);
+
+    // Выводим строки
+    int y = 30;
+    for (const auto& line : terminalHistory) {
+        M5Cardputer.Display.drawString(line, 8, y);
+        y += 12;  // Высота строки
+    }
+}
+
+void handleCommands(String cmd) {
+    cmd.trim();  // Убираем лишние пробелы и переводы строк
+
+    int spaceIndex = cmd.indexOf(' ');  // Ищем первый пробел
+    String command, arg;
+
+    if (spaceIndex != -1) {  
+        command = cmd.substring(0, spaceIndex);  // Команда до пробела
+        arg = cmd.substring(spaceIndex + 1);     // Аргумент после пробела
+    } else {
+        command = cmd;  // Если пробелов нет, значит, это просто команда
+    }
+    if(command == "clear") {
+        terminalHistory.clear();
+        M5Cardputer.Display.fillRect(4, 30, M5Cardputer.Display.width() - 8, 85, BLACK);
+    } else if (command == "cd") {
+        if (arg.length() > 0) {
+            dirPath = arg;
+            Serial.print("Go to directory: " + arg);
+            printToTerminal("Go to directory: " + arg);
+    
+            M5Cardputer.Display.fillRect(5, 122, M5Cardputer.Display.width(), 12, BLACK);
+            M5Cardputer.Display.drawString(dirPath, 5, 122);
+        } else {
+            Serial.println("Error: path not specifed.");
+            printToTerminal("Error: path not specifed.");
+        }
+    } else {
+        Serial.println("Unkown command.");
+        printToTerminal("Unkown command.");
+    }
+}
+
+void drawTerminal() {
+    appsMenu = true;
+    //isTerminal = true;
+    M5Cardputer.Display.clear();
+    drawUpperMenu();
+    M5Cardputer.Display.setFreeFont();
+    M5Cardputer.Display.setTextSize(1);
+    printToTerminal("Press opt+q to quit or type \"exit\"");
+    printToTerminal("Type \"help\" to print help message");
+    M5Cardputer.Display.drawLine(0, 115, 240, 115, MAINCOLOR);
+    M5Cardputer.Display.drawString(dirPath, 5, 122);                     // directory
+
+    while (appsMenu) {
+        M5Cardputer.update();
+        unsigned long currentTime = millis();
+        static unsigned long lastScrollTime = 0;
+        static unsigned long scrollDelay = 0;
+        const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
+        const unsigned long SCROLL_REPEAT_DELAY = 50;  // Скорость автоповтора
+
+        if (M5Cardputer.Keyboard.isPressed()) {
+            Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+
+            // Проверяем, нажаты ли служебные клавиши
+            bool hasModifierKey = status.ctrl || status.opt || status.alt || status.fn;
+            bool hasCharInput = false;
+
+            // Проверяем, есть ли вводимые символы
+            for (auto i : status.word) {
+                if (i != '\0') {
+                    hasCharInput = true;
+                    break;
+                }
+            }
+
+            if (currentTime - lastScrollTime >= scrollDelay) {
+                if (!hasCharInput && hasModifierKey) { 
+                    scrollDelay = 0;
+                    continue;
+                }
+
+                // Обрабатываем только символы
+                for (auto i : status.word) {
+                    cmd += i;
+                }
+
+                if (status.del) {
+                    cmd.remove(cmd.length() - 1);
+                }
+
+                if (status.enter && isTerminal) {
+                    M5Cardputer.Display.drawString(dirPath, 5, 122);
+                    printToTerminal(dirPath + cmd);
+                    handleCommands(cmd);
+                    cmd.remove(0, 2);
+                    cmd = "";
+                }
+
+                if (!isTerminal) {
+                    isTerminal = true;
+                }
+
+                M5Cardputer.Display.fillRect(23, M5Cardputer.Display.height() - 18, M5Cardputer.Display.width(), 25, BLACK);
+                M5Cardputer.Display.drawString(cmd, 23, M5Cardputer.Display.height() - 14);
+                
+                lastScrollTime = currentTime;
+                scrollDelay = (scrollDelay == 0) ? SCROLL_START_DELAY : SCROLL_REPEAT_DELAY;
+            }
+        } else {
+            scrollDelay = 0; // Сброс задержки, если клавиша отпущена
+        }
+    }
 }
 
 void drawWiFiNetworksMenu() {
@@ -300,7 +432,7 @@ void startAttackTask( void * parameter ) {
     wifi_deauther_spamer_target = false;
     wifi_beacon_spamer = false;
     wifi_probe_spamer = false;
-    attackMenu = false;
+    appsMenu = false;
     attackIsRunning = false;
 
     vTaskDelay(pdMS_TO_TICKS(100));
@@ -314,14 +446,13 @@ void startAttack() {/*
 }
 
 void handleKeyboard() {
-    static unsigned long lastScrollTime = 0;
-    static unsigned long scrollDelay = 0;
-    const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
-    const unsigned long SCROLL_REPEAT_DELAY = 50; // Скорость автоповтора
-
-    if (!valueEdit) {
+    if (!isTerminal && !valueEdit) {
         Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
         unsigned long currentTime = millis();
+        static unsigned long lastScrollTime = 0;
+        static unsigned long scrollDelay = 0;
+        const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
+        const unsigned long SCROLL_REPEAT_DELAY = 50; // Скорость автоповтора
 
         if (M5Cardputer.Keyboard.isKeyPressed('.') || M5Cardputer.Keyboard.isKeyPressed(';')) {
             if (currentTime - lastScrollTime >= scrollDelay) {
@@ -338,17 +469,17 @@ void handleKeyboard() {
                 needsRedraw = true;
                 lastScrollTime = currentTime;
                 scrollDelay = (scrollDelay == 0) ? SCROLL_START_DELAY : SCROLL_REPEAT_DELAY;
+                }
+            } else {
+                scrollDelay = 0; // Сброс задержки, если клавиша отпущена
             }
-        } else {
-            scrollDelay = 0; // Сброс задержки, если клавиша отпущена
-        }
-
+        
         if (M5Cardputer.Keyboard.isChange()) {
             if (M5Cardputer.Keyboard.isKeyPressed(KEY_ENTER)) {
                 if (wifi_scanning && currentMenu == networksMenu) {
                     wifi_scanning = false;
                 }
-
+    
                 if (currentMenu[item_selected].trigger) {
                     *(currentMenu[item_selected].trigger) = !*(currentMenu[item_selected].trigger);
                     if (currentMenu[item_selected].switchable) {
@@ -356,11 +487,11 @@ void handleKeyboard() {
                         needsRedraw = true;
                     }
                 }
-
+    
                 if (currentMenu[item_selected].action) {
                     currentMenu[item_selected].action();
                 }
-
+    
                 if (!wifi_scanning && currentMenu[item_selected].subItems && currentMenu[item_selected].subItemCount > 0) {
                     parentMenu = currentMenu;
                     parentSelected = item_selected;
@@ -370,22 +501,22 @@ void handleKeyboard() {
                     item_selected = 0;
                     needsRedraw = true;
                 }
-
+    
                 needsRedraw = true;
             }
-
+    
             if (M5Cardputer.Keyboard.isKeyPressed('`') || status.del) {
                 if (parentMenu) {
                     currentMenu = parentMenu;
                     currentMenuSize = parentMenuSize;
                     item_selected = parentSelected;
                     parentMenu = nullptr;
-
+    
                     wifi_scanning = false;
                     wifi_deauther_spamer_target = false;
                     wifi_beacon_spamer = false;
                     wifi_probe_spamer = false;
-                    attackMenu = false;
+                    appsMenu = false;
                     attackIsRunning = false;
                 } else {
                     currentMenu = mainMenuItems;
@@ -394,8 +525,8 @@ void handleKeyboard() {
                 needsRedraw = true;
             }
         }
-
-        if (needsRedraw && !attackMenu) {
+    
+        if (needsRedraw && !appsMenu) {
             drawMenu(currentMenu, currentMenuSize);
             needsRedraw = false;
         }
@@ -406,7 +537,7 @@ void redrawTask(void *parameter) {
     /*
     while (true) {
         // Проверка условия для перерисовки экрана
-        if (needsRedraw && !attackMenu) {
+        if (needsRedraw && !appsMenu) {
             drawMenu(currentMenu, currentMenuSize); // Перерисовка экрана
             needsRedraw = false; // Сбрасываем флаг
         }

@@ -166,7 +166,7 @@ bool wifi_beacon_spamer = false;
 bool wifi_probe_spamer = false;
 bool ble_server = false;
 bool ble_ios_spammer = false;
-bool attackMenu = false;
+bool appsMenu = false;
 bool valueEdit = false;
 int attackTime = 60;
 int ssidsCount = 32;
@@ -176,6 +176,7 @@ extern void startSoftAP();
 extern void checkCPUsage();
 extern void ble_start_server();
 extern void disconnect_all_clients();
+extern void drawTerminal();
 
 struct Bitmap {
     const unsigned char* data; // Указатель на массив с битмапом
@@ -320,6 +321,7 @@ MenuItem mainMenuItems[] = {
   { "RFID", &bitmap_icons[0], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "NFC", &bitmap_icons[0], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "IButton", &bitmap_icons[1], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
+  { "Terminal", &bitmap_icons[1], nullptr, 0, nullptr, nullptr, nullptr, false, &drawTerminal },
   { "Files", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   //{ "Scripts", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "Others", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
