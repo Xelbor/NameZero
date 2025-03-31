@@ -166,7 +166,6 @@ bool wifi_beacon_spamer = false;
 bool wifi_probe_spamer = false;
 bool ble_server = false;
 bool ble_ios_spammer = false;
-bool appsMenu = false;
 bool valueEdit = false;
 int attackTime = 60;
 int ssidsCount = 32;
@@ -196,7 +195,7 @@ const Bitmap bitmap_icons[26] = {
   { image_bluetooth_on_icon_bits, 14, 16 },           // 8
   { image_bluetooth_connected_icon_bits, 14, 16 },    // 9
   { image_disabled_bluetooth_icon_bits, 14, 16 },     // 10
-  { image_battery_empty_bits, 24, 16 },                // 11
+  { image_battery_empty_bits, 24, 16 },               // 11
   { image_info_icon_bits, 15, 16 },                   // 12
   { image_settings_icon_bits, 16, 16 },               // 13
   { image_gpio_icon_bits, 14, 16 },                   // 14
@@ -275,7 +274,7 @@ MenuItem deauthSubMenu[] {
 };
 
 MenuItem wifiSubMenu[] = {
-  //{ "Connect to Wi-Fi", nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "Connect to Wi-Fi", &bitmap_icons[6], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "AP", &bitmap_icons[7], nullptr, 0, &wifi_softAP, nullptr, [](){ return getBoolStatus(wifi_softAP); }, true, &startSoftAP },
   { "Deauth", &bitmap_icons[7], deauthSubMenu, sizeof(deauthSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
   { "Beacon", &bitmap_icons[18], attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_beacon_spamer, nullptr, nullptr, false, nullptr},
@@ -296,10 +295,6 @@ MenuItem bleSubMenu[] {
   { "BLE Spamers", &bitmap_icons[5], bleSpamSubMenu, sizeof(bleSpamSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr},
   { "Bad BLE", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "Mouse Jack", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-};
-
-MenuItem wifiSettingsMenu[] {
-  { "Wi-Fi", &bitmap_icons[7], nullptr, 0, &wifi_softAP, nullptr, [](){ return getBoolStatus(wifi_softAP); }, true, &startSoftAP },
 };
 
 MenuItem bleSettingsMenu[] {

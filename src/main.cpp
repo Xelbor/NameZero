@@ -1,3 +1,6 @@
+#include <M5Cardputer.h> 
+#include <M5GFX.h>
+
 extern "C" {
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -8,13 +11,11 @@ extern "C" {
 #include <esp_adc_cal.h>
 #include <soc/adc_channel.h>
 
+#include "Terminal.h"
+
 #include "gui.h"
 //#include "wifi/wifi.h"
 //#include "ble.h"
-#include <M5Cardputer.h> 
-#include <M5GFX.h>
-
-#include <cstring>
 
 // Font
 //#include "Fonts/Teletactile11.h"
@@ -34,15 +35,8 @@ M5Canvas canvas(&M5Cardputer.Display);
 MenuItem* currentMenu = mainMenuItems; // Текущее меню
 MenuItem* parentMenu = nullptr; // Саб-меню
 
-std::vector<String> terminalHistory;
-
-String cmd = "";
-String dirPath = "/$:";
-
 bool attackIsRunning = false;
 bool needsRedraw = false;
-
-bool isTerminal = false;
 
 int item_selected = 0; // which item in the menu is selected
 int parentSelected = 0;
@@ -159,7 +153,12 @@ void drawMenu(MenuItem* menu, int menuSize) {
         if (current_index == item_selected) {
             M5Cardputer.Display.drawRoundRect(5, 66, 210, boxHeight, 4, MAINCOLOR);
             M5Cardputer.Display.setFreeFont();
-            M5Cardputer.Display.setTextSize(3);
+            if (textWidth > screenWidth / 2) {
+                y_offset += 5;
+                M5Cardputer.Display.setTextSize(1.6);
+            } else {
+                M5Cardputer.Display.setTextSize(3);
+            }
         } else {
             M5Cardputer.Display.setFreeFont();
             M5Cardputer.Display.setTextSize(2);
@@ -218,130 +217,18 @@ void drawAttackMenu() {
     M5Cardputer.Display.drawBitmap(131, 150, image_EviSmile_bits, 18, 21, MAINCOLOR);
 }
 
-void printToTerminal(const String& text) {
-    const int maxLines = 7;
-    terminalHistory.push_back(text);
-
-    // Ограничиваем количество строк
-    if (terminalHistory.size() > maxLines) {
-        terminalHistory.erase(terminalHistory.begin());
-    }
-
-    M5Cardputer.Display.fillRect(4, 30, M5Cardputer.Display.width() - 8, 85, BLACK);
-
-    // Выводим строки
-    int y = 30;
-    for (const auto& line : terminalHistory) {
-        M5Cardputer.Display.drawString(line, 8, y);
-        y += 12;  // Высота строки
-    }
-}
-
-void handleCommands(String cmd) {
-    cmd.trim();  // Убираем лишние пробелы и переводы строк
-
-    int spaceIndex = cmd.indexOf(' ');  // Ищем первый пробел
-    String command, arg;
-
-    if (spaceIndex != -1) {  
-        command = cmd.substring(0, spaceIndex);  // Команда до пробела
-        arg = cmd.substring(spaceIndex + 1);     // Аргумент после пробела
-    } else {
-        command = cmd;  // Если пробелов нет, значит, это просто команда
-    }
-    if(command == "clear") {
-        terminalHistory.clear();
-        M5Cardputer.Display.fillRect(4, 30, M5Cardputer.Display.width() - 8, 85, BLACK);
-    } else if (command == "cd") {
-        if (arg.length() > 0) {
-            dirPath = arg;
-            Serial.print("Go to directory: " + arg);
-            printToTerminal("Go to directory: " + arg);
-    
-            M5Cardputer.Display.fillRect(5, 122, M5Cardputer.Display.width(), 12, BLACK);
-            M5Cardputer.Display.drawString(dirPath, 5, 122);
-        } else {
-            Serial.println("Error: path not specifed.");
-            printToTerminal("Error: path not specifed.");
-        }
-    } else {
-        Serial.println("Unkown command.");
-        printToTerminal("Unkown command.");
-    }
-}
-
 void drawTerminal() {
     appsMenu = true;
-    //isTerminal = true;
     M5Cardputer.Display.clear();
     drawUpperMenu();
     M5Cardputer.Display.setFreeFont();
     M5Cardputer.Display.setTextSize(1);
-    printToTerminal("Press opt+q to quit or type \"exit\"");
-    printToTerminal("Type \"help\" to print help message");
+    printToTerminal("Press opt+q to quit or type \"exit\"", ORANGE);
+    printToTerminal("Type \"help\" to print help message", ORANGE);
     M5Cardputer.Display.drawLine(0, 115, 240, 115, MAINCOLOR);
-    M5Cardputer.Display.drawString(dirPath, 5, 122);                     // directory
+    M5Cardputer.Display.drawString(dirPath + "$:", 5, 122);                     // directory
 
-    while (appsMenu) {
-        M5Cardputer.update();
-        unsigned long currentTime = millis();
-        static unsigned long lastScrollTime = 0;
-        static unsigned long scrollDelay = 0;
-        const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
-        const unsigned long SCROLL_REPEAT_DELAY = 50;  // Скорость автоповтора
-
-        if (M5Cardputer.Keyboard.isPressed()) {
-            Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
-
-            // Проверяем, нажаты ли служебные клавиши
-            bool hasModifierKey = status.ctrl || status.opt || status.alt || status.fn;
-            bool hasCharInput = false;
-
-            // Проверяем, есть ли вводимые символы
-            for (auto i : status.word) {
-                if (i != '\0') {
-                    hasCharInput = true;
-                    break;
-                }
-            }
-
-            if (currentTime - lastScrollTime >= scrollDelay) {
-                if (!hasCharInput && hasModifierKey) { 
-                    scrollDelay = 0;
-                    continue;
-                }
-
-                // Обрабатываем только символы
-                for (auto i : status.word) {
-                    cmd += i;
-                }
-
-                if (status.del) {
-                    cmd.remove(cmd.length() - 1);
-                }
-
-                if (status.enter && isTerminal) {
-                    M5Cardputer.Display.drawString(dirPath, 5, 122);
-                    printToTerminal(dirPath + cmd);
-                    handleCommands(cmd);
-                    cmd.remove(0, 2);
-                    cmd = "";
-                }
-
-                if (!isTerminal) {
-                    isTerminal = true;
-                }
-
-                M5Cardputer.Display.fillRect(23, M5Cardputer.Display.height() - 18, M5Cardputer.Display.width(), 25, BLACK);
-                M5Cardputer.Display.drawString(cmd, 23, M5Cardputer.Display.height() - 14);
-                
-                lastScrollTime = currentTime;
-                scrollDelay = (scrollDelay == 0) ? SCROLL_START_DELAY : SCROLL_REPEAT_DELAY;
-            }
-        } else {
-            scrollDelay = 0; // Сброс задержки, если клавиша отпущена
-        }
-    }
+    handleTerminalInput();
 }
 
 void drawWiFiNetworksMenu() {
@@ -577,10 +464,8 @@ void resourceMonitor(void *parameter) {
 void setup() {
     Serial.begin(115200);
 
-    pinMode(0, INPUT);
-    pinMode(10, INPUT);     // That pin reads the battery voltage
-
     // Инициализация
+    initializeSD();
     auto cfg = M5.config();
     M5Cardputer.begin(cfg, true);
 
@@ -588,6 +473,11 @@ void setup() {
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextColor(MAINCOLOR);
     setBrightness(255);
+
+    startMenu();
+
+    pinMode(0, INPUT);
+    pinMode(10, INPUT);     // That pin reads the battery voltage
 
     /*
     ESP_ERROR_CHECK(esp_netif_init());
@@ -608,7 +498,6 @@ void setup() {
     //xTaskCreatePinnedToCore(redrawTask, "redrawTask", 2048, NULL, 1, &redrawTaskHandle, 0);
 
     // Выводим страницы
-    startMenu();
     delay(2000);
     drawMenu(currentMenu, currentMenuSize);
 }
