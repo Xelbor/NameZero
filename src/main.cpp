@@ -132,8 +132,8 @@ void drawMainMenu() {
     int textCenterX = (M5Cardputer.Display.width() - textWidth) / 2;
     int textCenterY = (M5Cardputer.Display.height() - textHeight) / 2;
 
-    Serial.println(textCenterX);
-    Serial.println(textCenterY);
+    item_sel_previous = (item_selected - 1 + currentMenuSize) % currentMenuSize;
+    item_sel_next = (item_selected + 1) % currentMenuSize;
 
     M5Cardputer.Display.drawBitmap(10, 65, image_ArrowLeft_icon_bits, 8, 14, MAINCOLOR);
     M5Cardputer.Display.drawBitmap(45, 65, mainMenuItems[item_sel_previous].icon->data, mainMenuItems[item_sel_previous].icon->width, mainMenuItems[item_sel_previous].icon->height, MAINCOLOR);
@@ -367,7 +367,7 @@ void startAttack() {/*
 }
 
 void handleKeyboard() {
-    if (!isTerminal && !valueEdit) {
+    if (currentMenu != mainMenuItems && !isTerminal && !valueEdit) {
         Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
         unsigned long currentTime = millis();
         static unsigned long lastScrollTime = 0;

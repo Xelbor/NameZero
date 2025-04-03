@@ -343,7 +343,6 @@ MenuItem mainMenuItems[] = {
   { "IButton", &bitmap_icons[1], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "Terminal", &bitmap_icons[1], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, &drawTerminal },
   { "Files", &bitmap_icons[18], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
-  //{ "Scripts", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "Others", &bitmap_icons[18], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "Settings", &bitmap_icons[15], nullptr, settingsSubMenu, sizeof(settingsSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr }
 };
