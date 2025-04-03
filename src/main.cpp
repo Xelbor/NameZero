@@ -109,6 +109,40 @@ void drawUpperMenu() {
     M5Cardputer.Display.drawLine(0, 24, 240, 24, MAINCOLOR);  // Limitter Line
 }
 
+void drawMainMenu() {
+    M5Cardputer.Display.clear();
+    drawUpperMenu();
+    M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.setFreeFont();
+
+    int screenWidth = M5Cardputer.Display.width();
+    int screenHeight = M5Cardputer.Display.height();
+
+    int iconWidth = mainMenuItems[item_selected].icon->width;
+    int iconHeight = mainMenuItems[item_selected].icon->height;
+
+    int iconCenterX = (M5Cardputer.Display.width() - iconWidth) / 2;
+    int iconCenterY = (M5Cardputer.Display.height() - iconHeight) / 2;
+
+    const char* itemText = mainMenuItems[item_selected].name;
+
+    int textWidth = M5Cardputer.Display.textWidth(itemText);
+    int textHeight = M5Cardputer.Display.fontHeight();
+    
+    int textCenterX = (M5Cardputer.Display.width() - textWidth) / 2;
+    int textCenterY = (M5Cardputer.Display.height() - textHeight) / 2;
+
+    Serial.println(textCenterX);
+    Serial.println(textCenterY);
+
+    M5Cardputer.Display.drawBitmap(10, 65, image_ArrowLeft_icon_bits, 8, 14, MAINCOLOR);
+    M5Cardputer.Display.drawBitmap(45, 65, mainMenuItems[item_sel_previous].icon->data, mainMenuItems[item_sel_previous].icon->width, mainMenuItems[item_sel_previous].icon->height, MAINCOLOR);
+    M5Cardputer.Display.drawBitmap(iconCenterX - 19, iconCenterY - 9, mainMenuItems[item_selected].large_icon->data, mainMenuItems[item_selected].large_icon->width, mainMenuItems[item_selected].large_icon->height, MAINCOLOR);
+    M5Cardputer.Display.drawString(itemText, textCenterX + 1, textCenterY + 51);
+    M5Cardputer.Display.drawBitmap(177, 65, mainMenuItems[item_sel_next].icon->data, mainMenuItems[item_sel_next].icon->width, mainMenuItems[item_sel_next].icon->height, MAINCOLOR);
+    M5Cardputer.Display.drawBitmap(220, 65, image_ArrowRight_icon_bits, 8, 14, MAINCOLOR);
+}
+
 void drawMenu(MenuItem* menu, int menuSize) {
     M5Cardputer.Display.clear();
     M5Cardputer.Display.setTextSize(1);
@@ -499,7 +533,8 @@ void setup() {
 
     // Выводим страницы
     delay(2000);
-    drawMenu(currentMenu, currentMenuSize);
+    drawMainMenu();
+    //drawMenu(currentMenu, currentMenuSize);
 }
 
 void loop() {

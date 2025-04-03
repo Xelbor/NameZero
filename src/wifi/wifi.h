@@ -24,6 +24,8 @@ extern "C" {
 const char *WIFI_SSID = "NameZero";
 const char *WIFI_PASS = "12345678";
 
+int ssidsCount = 32;
+
 PacketSender sender;
 
 char ssids_networks[] = {};

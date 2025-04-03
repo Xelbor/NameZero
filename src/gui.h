@@ -35,6 +35,30 @@ const unsigned char image_wifi5_icon_bits[] = {
   0x00, 0x03, 0xb8, 0x00, 0x01, 0x50, 0x00, 0x00, 0xe0, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00
 };
 
+const unsigned char image_wifi_large_icon_bits[] = {
+  0x00, 0x00, 0x07,0xff,0xf8,0x00,0x00,0x00,0x00,0x00,0x07,0xff,0xf8,0x00,0x00,0x00,0x00,0x00,0x07,
+  0xff, 0xf8, 0x00,0x00,0x00,0x00,0x01,0xff,0xff,0xff,0xe0,0x00,0x00,0x00,0x01,0xff,0xff,0xff,0xe0,
+  0x00, 0x00, 0x00,0x01,0xff,0xff,0xff,0xe0,0x00,0x00,0x00,0x7f,0xf8,0x00,0x07,0xff,0x80,0x00,0x00,
+  0x7f, 0xf8, 0x00,0x07,0xff,0x80,0x00,0x00,0x7f,0xf8,0x00,0x07,0xff,0x80,0x00,0x03,0xfe,0x07,0xff,
+  0xf8, 0x1f, 0xf0,0x00,0x03,0xfe,0x07,0xff,0xf8,0x1f,0xf0,0x00,0x03,0xfe,0x07,0xff,0xf8,0x1f,0xf0,
+  0x00, 0x1f, 0xf1,0xff,0xff,0xff,0xe3,0xfe,0x00,0x1f,0xf1,0xff,0xff,0xff,0xe3,0xfe,0x00,0x1f,0xf1,
+  0xff, 0xff, 0xff,0xe3,0xfe,0x00,0xff,0x8f,0xff,0x00,0x3f,0xfc,0x7f,0xc0,0xff,0x8f,0xff,0x00,0x3f,
+  0xfc, 0x7f, 0xc0,0xff,0x8f,0xff,0x00,0x3f,0xfc,0x7f,0xc0,0x1c,0x7f,0xc0,0xff,0xc0,0xff,0x8e,0x00,
+  0x1c,0x7f,0xc0,0xff,0xc0,0xff,0x8e,0x00,0x1c,0x7f,0xc0,0xff,0xc0,0xff,0x8e,0x00,0x03,0xfe,0x3f,
+  0xff,0xff,0x1f,0xf0,0x00,0x03,0xfe,0x3f,0xff,0xff,0x1f,0xf0,0x00,0x03,0xfe,0x3f,0xff,0xff,0x1f,
+  0xf0,0x00,0x03,0xfe,0x3f,0xff,0xff,0x1f,0xf0,0x00,0x00,0x71,0xff,0x00,0x3f,0xe3,0x80,0x00,0x00,
+  0x71,0xff,0x00,0x3f,0xe3,0x80,0x00,0x00,0x71,0xff,0x00,0x3f,0xe3,0x80,0x00,0x00,0x0f,0xf8,0xff,
+  0xc7,0xfc,0x00,0x00,0x00,0x0f,0xf8,0xff,0xc7,0xfc,0x00,0x00,0x00,0x0f,0xf8,0xff,0xc7,0xfc,0x00,
+  0x00,0x00,0x01,0xc7,0xff,0xf8,0xe0,0x00,0x00,0x00,0x01,0xc7,0xff,0xf8,0xe0,0x00,0x00,0x00,0x01,
+  0xc7,0xff,0xf8,0xe0,0x00,0x00,0x00,0x00,0x3f,0xe1,0xff,0x00,0x00,0x00,0x00,0x00,0x3f,0xe1,0xff,
+  0x00,0x00,0x00,0x00,0x00,0x3f,0xe1,0xff,0x00,0x00,0x00,0x00,0x00,0x07,0x1e,0x38,0x00,0x00,0x00,
+  0x00,0x00,0x07,0x1e,0x38,0x00,0x00,0x00,0x00,0x00,0x07,0x1e,0x38,0x00,0x00,0x00,0x00,0x00,0x00,
+  0xff,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0xff,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0xff,0xc0,0x00,
+  0x00,0x00,0x00,0x00,0x00,0x1e,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x1e,0x00,0x00,0x00,0x00,0x00,
+  0x00,0x00,0x1e,0x00,0x00,0x00,0x00};
+
+const unsigned char image_bluetooth_large_icon_bits[] = {0x00,0x03,0x80,0x00,0x00,0x03,0x80,0x00,0x00,0x03,0x80,0x00,0x00,0x1c,0x70,0x00,0x00,0x1c,0x70,0x00,0x00,0x1c,0x70,0x00,0x00,0x1c,0x0e,0x00,0x00,0x1c,0x0e,0x00,0x00,0x1c,0x0e,0x00,0xe0,0x1c,0x01,0x80,0xe0,0x1c,0x01,0x80,0xe0,0x1c,0x01,0x80,0x18,0x1c,0x01,0x80,0x18,0x1c,0x01,0x80,0x07,0x1c,0x0e,0x00,0x07,0x1c,0x0e,0x00,0x07,0x1c,0x0e,0x00,0x00,0xfc,0x70,0x00,0x00,0xfc,0x70,0x00,0x00,0xfc,0x70,0x00,0x00,0x1f,0x80,0x00,0x00,0x1f,0x80,0x00,0x00,0x1f,0x80,0x00,0x00,0xfc,0x70,0x00,0x00,0xfc,0x70,0x00,0x00,0xfc,0x70,0x00,0x07,0x1c,0x0e,0x00,0x07,0x1c,0x0e,0x00,0x07,0x1c,0x0e,0x00,0x18,0x1c,0x01,0x80,0x18,0x1c,0x01,0x80,0x18,0x1c,0x01,0x80,0xe0,0x1c,0x01,0x80,0xe0,0x1c,0x01,0x80,0xe0,0x1c,0x01,0x80,0x00,0x1c,0x0e,0x00,0x00,0x1c,0x0e,0x00,0x00,0x1c,0x70,0x00,0x00,0x1c,0x70,0x00,0x00,0x1c,0x70,0x00,0x00,0x03,0x80,0x00,0x00,0x03,0x80,0x00,0x00,0x03,0x80,0x00};
+
 const unsigned char image_disabled_bluetooth_icon_bits[] = {
   0x02, 0x00, 0x83, 0x00, 0x42, 0x80, 0x22, 0x40, 0x12, 0x20, 0x08, 0x20, 0x04, 0x40, 0x02, 0x00,
   0x05, 0x00, 0x0a, 0x80, 0x12, 0x40, 0x22, 0x20, 0x02, 0x50, 0x02, 0x88, 0x01, 0x04, 0x00, 0x00
@@ -157,6 +181,10 @@ const unsigned char bitmap_scrollbar_background [] = {
 	0x00, 0x00, 0x00, 0x00
 };
 
+const unsigned char image_ArrowRight_icon_bits[] = {0xc0,0xc0,0xf0,0xf0,0xfc,0xfc,0xff,0xff,0xfc,0xfc,0xf0,0xf0,0xc0,0xc0};
+
+const unsigned char image_ArrowLeft_icon_bits[] = {0x03,0x03,0x0f,0x0f,0x3f,0x3f,0xff,0xff,0x3f,0x3f,0x0f,0x0f,0x03,0x03};
+
 bool wifi_softAP = false;
 bool wifi_scanning = false;
 bool wifi_ap_cloner = false;
@@ -168,7 +196,6 @@ bool ble_server = false;
 bool ble_ios_spammer = false;
 bool valueEdit = false;
 int attackTime = 60;
-int ssidsCount = 32;
 extern void drawWiFiNetworksMenu();
 extern void startAttack();
 extern void startSoftAP();
@@ -178,12 +205,12 @@ extern void disconnect_all_clients();
 extern void drawTerminal();
 
 struct Bitmap {
-    const unsigned char* data; // Указатель на массив с битмапом
-    int width;                 // Ширина изображения
-    int height;                // Высота изображения
+  const unsigned char* data; // Указатель на массив с битмапом
+  int width;                 // Ширина изображения
+  int height;                // Высота изображения
 };
 
-const Bitmap bitmap_icons[26] = {
+const Bitmap bitmap_icons[28] = {
   { image_rfid_icon_bits, 13, 16 },                   // 0
   { image_ibutton_icon_bits, 15, 16 },                // 1
   { image_sub_ghz_icon_bits, 15, 16 },                // 2
@@ -191,25 +218,27 @@ const Bitmap bitmap_icons[26] = {
   { image_wifi1_icon_bits, 19, 16 },                  // 4
   { image_wifi3_icon_bits, 19, 16 },                  // 5
   { image_wifi5_icon_bits, 19, 16 },                  // 6
-  { image_disabled_wifi_icon_bits, 19, 16 },          // 7
-  { image_bluetooth_on_icon_bits, 14, 16 },           // 8
-  { image_bluetooth_connected_icon_bits, 14, 16 },    // 9
-  { image_disabled_bluetooth_icon_bits, 14, 16 },     // 10
-  { image_battery_empty_bits, 24, 16 },               // 11
-  { image_info_icon_bits, 15, 16 },                   // 12
-  { image_settings_icon_bits, 16, 16 },               // 13
-  { image_gpio_icon_bits, 14, 16 },                   // 14
-  { image_sd_icon_bits, 14, 16 },                     // 15
-  { image_file_icon_bits, 12, 16 },                   // 16
-  { image_stat_icon_bits, 14, 16 },                   // 17
-  { image_points_icon_bits, 14, 16},                  // 18
-  { image_key_icon_bits, 15, 16 },                    // 19
-  { image_sniff_icon_bits, 15, 16},                   // 20
-  { image_EviSmile_bits, 18, 21},                     // 21
-  { image_time_icon_bits, 11, 16 },                   // 22
-  { image_play_icon_bits, 15, 16},                    // 23
-  { image_mail_icon_bits, 17, 16 },                   // 24
-  { image_radio_streaming_icon_bits, 17, 16 }         // 25
+  { image_wifi_large_icon_bits, 58, 46 },             // 7
+  { image_disabled_wifi_icon_bits, 19, 16 },          // 8
+  { image_bluetooth_on_icon_bits, 14, 16 },           // 9
+  { image_bluetooth_large_icon_bits, 25, 43 },        // 10
+  { image_bluetooth_connected_icon_bits, 14, 16 },    // 11
+  { image_disabled_bluetooth_icon_bits, 14, 16 },     // 12
+  { image_battery_empty_bits, 24, 16 },               // 13
+  { image_info_icon_bits, 15, 16 },                   // 14
+  { image_settings_icon_bits, 16, 16 },               // 15
+  { image_gpio_icon_bits, 14, 16 },                   // 16
+  { image_sd_icon_bits, 14, 16 },                     // 17
+  { image_file_icon_bits, 12, 16 },                   // 18
+  { image_stat_icon_bits, 14, 16 },                   // 19
+  { image_points_icon_bits, 14, 16},                  // 20
+  { image_key_icon_bits, 15, 16 },                    // 21
+  { image_sniff_icon_bits, 15, 16},                   // 22
+  { image_EviSmile_bits, 18, 21},                     // 23
+  { image_time_icon_bits, 11, 16 },                   // 24
+  { image_play_icon_bits, 15, 16},                    // 25
+  { image_mail_icon_bits, 17, 16 },                   // 26
+  { image_radio_streaming_icon_bits, 17, 16 }         // 27
 };
 
 struct IconStatus {
@@ -246,6 +275,7 @@ const Bitmap* getMenuItemIconStatus(bool* trigger) {
 struct MenuItem {
   const char* name;
   const Bitmap* icon;
+  const Bitmap* large_icon;
   MenuItem* subItems;
   int subItemCount;
   bool* trigger;
@@ -258,69 +288,64 @@ struct MenuItem {
 MenuItem* networksMenu = nullptr;
 
 MenuItem attackSubMenu[] {
-  { "Attack Time:", &bitmap_icons[22], nullptr, 0, &valueEdit, &attackTime, nullptr, false, nullptr },
-  { "Start", &bitmap_icons[23], nullptr, 0, nullptr, nullptr, nullptr, false, &startAttack }
+  { "Attack Time:", &bitmap_icons[24], nullptr, nullptr, 0, &valueEdit, &attackTime, nullptr, false, nullptr },
+  { "Start", &bitmap_icons[25], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, &startAttack }
 };
 
 MenuItem sniffersSubMenu[] {
-  { "Packets", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "Handshake", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "PMKID", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr}
+  { "Packets", &bitmap_icons[5], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "Handshake", &bitmap_icons[5], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "PMKID", &bitmap_icons[5], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr}
 };
 
 MenuItem deauthSubMenu[] {
-  { "Deauth Target", &bitmap_icons[7], networksMenu, sizeof(&networksMenu) / sizeof(MenuItem), &wifi_deauther_spamer_target, nullptr, nullptr, false, &drawWiFiNetworksMenu },
-  { "Deauth All", &bitmap_icons[7], attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_deauther_spamer, nullptr, nullptr, false, &startAttack },
+  { "Deauth Target", &bitmap_icons[7], nullptr, networksMenu, sizeof(&networksMenu) / sizeof(MenuItem), &wifi_deauther_spamer_target, nullptr, nullptr, false, &drawWiFiNetworksMenu },
+  { "Deauth All", &bitmap_icons[7], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_deauther_spamer, nullptr, nullptr, false, &startAttack },
 };
 
 MenuItem wifiSubMenu[] = {
-  { "Connect to Wi-Fi", &bitmap_icons[6], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "AP", &bitmap_icons[7], nullptr, 0, &wifi_softAP, nullptr, [](){ return getBoolStatus(wifi_softAP); }, true, &startSoftAP },
-  { "Deauth", &bitmap_icons[7], deauthSubMenu, sizeof(deauthSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
-  { "Beacon", &bitmap_icons[18], attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_beacon_spamer, nullptr, nullptr, false, nullptr},
-  { "Probe", &bitmap_icons[24], attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_probe_spamer, nullptr, nullptr, false, nullptr},
-  { "EvilPortal", &bitmap_icons[19], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "Sniffers", &bitmap_icons[20], sniffersSubMenu, sizeof(sniffersSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr}
+  { "Connect to Wi-Fi", &bitmap_icons[6], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},  // нужно будет добавить кнопку отключения
+  { "AP", &bitmap_icons[7], nullptr, nullptr, 0, &wifi_softAP, nullptr, [](){ return getBoolStatus(wifi_softAP); }, true, &startSoftAP },
+  { "Deauth", &bitmap_icons[7], nullptr, deauthSubMenu, sizeof(deauthSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
+  { "Beacon", &bitmap_icons[18], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_beacon_spamer, nullptr, nullptr, false, nullptr},
+  { "Probe", &bitmap_icons[24], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_probe_spamer, nullptr, nullptr, false, nullptr},
+  { "EvilPortal", &bitmap_icons[19], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "Sniffers", &bitmap_icons[20], nullptr, sniffersSubMenu, sizeof(sniffersSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr}
 };
 
 MenuItem bleSpamSubMenu[] {
-  { "IOS", &bitmap_icons[5], nullptr, 0, &ble_ios_spammer, nullptr, nullptr, false, nullptr},
-  { "Android", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "Samsung", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "Spam All", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "IOS", &bitmap_icons[5], nullptr, nullptr, 0, &ble_ios_spammer, nullptr, nullptr, false, nullptr},
+  { "Android", &bitmap_icons[5], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "Samsung", &bitmap_icons[5], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "Spam All", &bitmap_icons[5], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
 };
 
 MenuItem bleSubMenu[] {
-  { "BLE Jammer", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "BLE Spamers", &bitmap_icons[5], bleSpamSubMenu, sizeof(bleSpamSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr},
-  { "Bad BLE", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "Mouse Jack", &bitmap_icons[5], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-};
-
-MenuItem bleSettingsMenu[] {
-  { "Bluetooth", &bitmap_icons[10], nullptr, 0, &ble_server, nullptr, [](){ return getBoolStatus(ble_server); }, true, nullptr},
-  { "Unpair All Devices", nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr}
+  { "Bluetooth", &bitmap_icons[9], nullptr, nullptr, 0, &ble_server, nullptr, [](){ return getBoolStatus(ble_server); }, true, nullptr},  // нужно будет добавить кнопку отключения
+  { "BLE Jammer", &bitmap_icons[5], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "BLE Spamers", &bitmap_icons[5], nullptr, bleSpamSubMenu, sizeof(bleSpamSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr},
+  { "Bad BLE", &bitmap_icons[5], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
 };
 
 MenuItem settingsSubMenu[] {
-  { "System Info", &bitmap_icons[17], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "GPIO", &bitmap_icons[14], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "SD", &bitmap_icons[15], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "System Info", &bitmap_icons[19], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "GPIO", &bitmap_icons[16], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "SD", &bitmap_icons[17], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
 };
 
 MenuItem mainMenuItems[] = {
-  { "Wi-Fi", &bitmap_icons[6], wifiSubMenu, sizeof(wifiSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
-  { "Bluetooth", &bitmap_icons[8], bleSubMenu, sizeof(bleSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
-  { "Sub-GHZ", &bitmap_icons[2], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr }, 
-  { "IR", &bitmap_icons[3], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
-  { "RFID", &bitmap_icons[0], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
-  { "NFC", &bitmap_icons[0], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
-  { "IButton", &bitmap_icons[1], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
-  { "Terminal", &bitmap_icons[1], nullptr, 0, nullptr, nullptr, nullptr, false, &drawTerminal },
-  { "Files", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
+  { "Wi-Fi", &bitmap_icons[6], &bitmap_icons[7], wifiSubMenu, sizeof(wifiSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
+  { "Bluetooth", &bitmap_icons[9], &bitmap_icons[10], bleSubMenu, sizeof(bleSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
+  { "Sub-GHZ", &bitmap_icons[2], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr }, 
+  { "IR", &bitmap_icons[3], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
+  { "RFID", &bitmap_icons[0], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
+  { "NFC", &bitmap_icons[0], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
+  { "IButton", &bitmap_icons[1], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
+  { "Terminal", &bitmap_icons[1], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, &drawTerminal },
+  { "Files", &bitmap_icons[18], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   //{ "Scripts", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
-  { "Others", &bitmap_icons[16], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
-  { "Settings", &bitmap_icons[13], settingsSubMenu, sizeof(settingsSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr }
+  { "Others", &bitmap_icons[18], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
+  { "Settings", &bitmap_icons[15], nullptr, settingsSubMenu, sizeof(settingsSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr }
 };
 
 const int NUM_ITEMS = sizeof(mainMenuItems) / sizeof(MenuItem);
