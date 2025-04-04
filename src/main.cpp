@@ -11,6 +11,10 @@ extern "C" {
 #include <esp_adc_cal.h>
 #include <soc/adc_channel.h>
 
+#include <SD.h>
+#include <FS.h>
+#include <SPI.h>
+
 #include "Terminal.h"
 
 #include "gui.h"
@@ -38,6 +42,8 @@ MenuItem* parentMenu = nullptr; // Саб-меню
 bool attackIsRunning = false;
 bool needsRedraw = false;
 
+bool handlingKeyboard = true;
+
 int item_selected = 0; // which item in the menu is selected
 int parentSelected = 0;
 
@@ -48,6 +54,14 @@ int currentMenuSize = NUM_ITEMS; // Получаем количество пун
 int parentMenuSize = 0; // Получаем количество пунктов родительского меню
 
 int display_items = 5;    // Количиство отображаемых пунктов на одной странице
+
+const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
+const unsigned long SCROLL_REPEAT_DELAY = 50; // Скорость автоповтора
+
+int sck = 40;
+int miso = 39;
+int mosi = 14;
+int cs = 12;
 
 void setBrightness(int bright) {
     analogWrite(TFT_BL, bright);
@@ -100,6 +114,7 @@ void drawUpperMenu() {
     M5Cardputer.Display.fillRect(215, 10, 17, 9, MAINCOLOR);
     M5Cardputer.Display.fillRect(212, 13, 3, 3, MAINCOLOR);
     
+    if (!SD.cardType() == CARD_NONE) M5Cardputer.Display.drawBitmap(166, 7, image_sd_icon_bits, 14, 16, MAINCOLOR);
     if (wifi_softAP) M5Cardputer.Display.drawBitmap(166, 7, image_wifi5_icon_bits, 19, 16, MAINCOLOR);
     if (ble_server) M5Cardputer.Display.drawBitmap(150, 7, image_bluetooth_on_icon_bits, 14, 16, MAINCOLOR);
 
@@ -112,34 +127,59 @@ void drawUpperMenu() {
 void drawMainMenu() {
     M5Cardputer.Display.clear();
     drawUpperMenu();
-    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setFreeFont();
 
-    int screenWidth = M5Cardputer.Display.width();
-    int screenHeight = M5Cardputer.Display.height();
+    // Выбираемая иконка
+    int iconCenterX = (M5Cardputer.Display.width() - mainMenuItems[item_selected].large_icon->width) / 2;
+    int iconCenterY = (M5Cardputer.Display.height() - mainMenuItems[item_selected].large_icon->height) / 2;
 
-    int iconWidth = mainMenuItems[item_selected].icon->width;
-    int iconHeight = mainMenuItems[item_selected].icon->height;
-
-    int iconCenterX = (M5Cardputer.Display.width() - iconWidth) / 2;
-    int iconCenterY = (M5Cardputer.Display.height() - iconHeight) / 2;
-
-    const char* itemText = mainMenuItems[item_selected].name;
-
-    int textWidth = M5Cardputer.Display.textWidth(itemText);
-    int textHeight = M5Cardputer.Display.fontHeight();
-    
-    int textCenterX = (M5Cardputer.Display.width() - textWidth) / 2;
-    int textCenterY = (M5Cardputer.Display.height() - textHeight) / 2;
+    // Вычисляем координаты для соседних значков
+    int spacing = 27;  // Расстояние между иконками
 
     item_sel_previous = (item_selected - 1 + currentMenuSize) % currentMenuSize;
     item_sel_next = (item_selected + 1) % currentMenuSize;
 
+    int prevIconX = iconCenterX - mainMenuItems[item_sel_previous].icon->width - spacing;
+    int prevIconY = iconCenterY + (mainMenuItems[item_selected].large_icon->height - mainMenuItems[item_sel_previous].icon->height) / 2;  // Выравниваем по центру
+
+    int nextIconX = iconCenterX + mainMenuItems[item_selected].large_icon->width + spacing;
+    int nextIconY = iconCenterY + (mainMenuItems[item_selected].large_icon->height - mainMenuItems[item_sel_next].icon->height) / 2;
+
+    // Вычисляем координаты текста
+    const char* prevText = mainMenuItems[item_sel_previous].name;
+    const char* selectedItemText = mainMenuItems[item_selected].name;
+    const char* nextText = mainMenuItems[item_sel_next].name;
+
+    int textWidth = M5Cardputer.Display.textWidth(selectedItemText);
+    int textHeight = M5Cardputer.Display.fontHeight();
+    int textCenterX = iconCenterX + (mainMenuItems[item_selected].large_icon->width / 2) - (textWidth / 2);
+    int textCenterY = (M5Cardputer.Display.height() - textHeight) / 2;
+
+    int prevTextWidth = M5Cardputer.Display.textWidth(prevText);
+    int prevTextX = prevIconX + (mainMenuItems[item_sel_next].icon->width / 2) - (prevTextWidth / 2);
+    int prevTextY = prevIconY + mainMenuItems[item_sel_next].icon->height + 5;  // Отступ вниз
+
+    int nextTextWidth = M5Cardputer.Display.textWidth(nextText);
+    int nextTextX = nextIconX + (mainMenuItems[item_sel_next].icon->width / 2) - (nextTextWidth / 2);
+    int nextTextY = nextIconY + mainMenuItems[item_sel_next].icon->height + 5;
+
     M5Cardputer.Display.drawBitmap(10, 65, image_ArrowLeft_icon_bits, 8, 14, MAINCOLOR);
-    M5Cardputer.Display.drawBitmap(45, 65, mainMenuItems[item_sel_previous].icon->data, mainMenuItems[item_sel_previous].icon->width, mainMenuItems[item_sel_previous].icon->height, MAINCOLOR);
-    M5Cardputer.Display.drawBitmap(iconCenterX - 19, iconCenterY - 9, mainMenuItems[item_selected].large_icon->data, mainMenuItems[item_selected].large_icon->width, mainMenuItems[item_selected].large_icon->height, MAINCOLOR);
-    M5Cardputer.Display.drawString(itemText, textCenterX + 1, textCenterY + 51);
-    M5Cardputer.Display.drawBitmap(177, 65, mainMenuItems[item_sel_next].icon->data, mainMenuItems[item_sel_next].icon->width, mainMenuItems[item_sel_next].icon->height, MAINCOLOR);
+
+    // Предыдущий пункт
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.drawBitmap(prevIconX, prevIconY + 6, mainMenuItems[item_sel_previous].icon->data, mainMenuItems[item_sel_previous].icon->width, mainMenuItems[item_sel_previous].icon->height, MAINCOLOR);
+    M5Cardputer.Display.drawString(prevText, prevTextX, prevTextY + 10);
+
+    // Выбранный пункт
+    M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.drawBitmap(iconCenterX, iconCenterY + 6, mainMenuItems[item_selected].large_icon->data, mainMenuItems[item_selected].large_icon->width, mainMenuItems[item_selected].large_icon->height, MAINCOLOR);
+    M5Cardputer.Display.drawString(selectedItemText, textCenterX - 14, textCenterY + 47);
+
+    // Следующий пункт
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.drawBitmap(nextIconX, nextIconY + 6, mainMenuItems[item_sel_next].icon->data, mainMenuItems[item_sel_next].icon->width, mainMenuItems[item_sel_next].icon->height, MAINCOLOR);
+    M5Cardputer.Display.drawString(nextText, nextTextX, nextTextY + 10);
+
     M5Cardputer.Display.drawBitmap(220, 65, image_ArrowRight_icon_bits, 8, 14, MAINCOLOR);
 }
 
@@ -367,14 +407,31 @@ void startAttack() {/*
 }
 
 void handleKeyboard() {
-    if (currentMenu != mainMenuItems && !isTerminal && !valueEdit) {
-        Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
-        unsigned long currentTime = millis();
-        static unsigned long lastScrollTime = 0;
-        static unsigned long scrollDelay = 0;
-        const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
-        const unsigned long SCROLL_REPEAT_DELAY = 50; // Скорость автоповтора
+    Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+    unsigned long currentTime = millis();
+    static unsigned long lastScrollTime = 0;
+    static unsigned long scrollDelay = 0;
+    if (currentMenu == mainMenuItems && !isTerminal && !valueEdit) {
+        if (M5Cardputer.Keyboard.isKeyPressed('/') || M5Cardputer.Keyboard.isKeyPressed(',')) {
+            if (currentTime - lastScrollTime >= scrollDelay) {
+                if (M5Cardputer.Keyboard.isKeyPressed('/')) {
+                    item_selected++;
+                    if (item_selected >= currentMenuSize) item_selected = 0;
+                }
 
+                if (M5Cardputer.Keyboard.isKeyPressed(',')) {
+                    item_selected--;
+                    if (item_selected < 0) item_selected = currentMenuSize - 1;
+                }
+
+                needsRedraw = true;
+                lastScrollTime = currentTime;
+                scrollDelay = (scrollDelay == 0) ? SCROLL_START_DELAY : SCROLL_REPEAT_DELAY;
+            }
+        } else {
+            scrollDelay = 0; // Сброс задержки, если клавиша отпущена
+        }
+    } else if (!isTerminal && !valueEdit) {
         if (M5Cardputer.Keyboard.isKeyPressed('.') || M5Cardputer.Keyboard.isKeyPressed(';')) {
             if (currentTime - lastScrollTime >= scrollDelay) {
                 if (M5Cardputer.Keyboard.isKeyPressed('.')) { 
@@ -390,10 +447,10 @@ void handleKeyboard() {
                 needsRedraw = true;
                 lastScrollTime = currentTime;
                 scrollDelay = (scrollDelay == 0) ? SCROLL_START_DELAY : SCROLL_REPEAT_DELAY;
-                }
             } else {
                 scrollDelay = 0; // Сброс задержки, если клавиша отпущена
             }
+        }
         
         if (M5Cardputer.Keyboard.isChange()) {
             if (M5Cardputer.Keyboard.isKeyPressed(KEY_ENTER)) {
@@ -446,11 +503,14 @@ void handleKeyboard() {
                 needsRedraw = true;
             }
         }
-    
-        if (needsRedraw && !appsMenu) {
-            drawMenu(currentMenu, currentMenuSize);
-            needsRedraw = false;
-        }
+    }
+
+    if (needsRedraw && currentMenu != mainMenuItems && !appsMenu) {
+        drawMenu(currentMenu, currentMenuSize);
+        needsRedraw = false;
+    } else if(needsRedraw && currentMenu == mainMenuItems && !appsMenu) {
+        drawMainMenu();
+        needsRedraw = false;
     }
 }
 
@@ -494,6 +554,21 @@ void resourceMonitor(void *parameter) {
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }*/
+
+void initializeSD() {
+    SPI.begin(sck, miso, mosi, cs);
+    if (!SD.begin(cs)) {
+        Serial.println("Card Mount Failed");
+        return;
+    }
+
+    uint8_t cardType = SD.cardType();
+    
+    if(cardType == CARD_NONE){
+        Serial.println("No SD card attached");
+        return;
+    }
+}
 
 void setup() {
     Serial.begin(115200);
