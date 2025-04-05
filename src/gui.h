@@ -201,6 +201,10 @@ const unsigned char image_ArrowRight_icon_bits[] = {0xc0,0xc0,0xf0,0xf0,0xfc,0xf
 
 const unsigned char image_ArrowLeft_icon_bits[] = {0x03,0x03,0x0f,0x0f,0x3f,0x3f,0xff,0xff,0x3f,0x3f,0x0f,0x0f,0x03,0x03};
 
+const unsigned char image_ArrowUp_icon_bits[] = {0x10,0x38,0x7c,0xfe};
+
+const unsigned char image_ArrowDown_icon_bits[] = {0xfe,0x7c,0x38,0x10};
+
 bool wifi_softAP = false;
 bool wifi_scanning = false;
 bool wifi_ap_cloner = false;
@@ -293,7 +297,7 @@ const char* getBoolStatus(bool trigger) {
 }
 
 const Bitmap* getMenuItemIconStatus(bool* trigger) {
-  if (trigger == &wifi_softAP) return *trigger ? &bitmap_icons[6] : &bitmap_icons[7];
+  if (trigger == &wifi_softAP) return *trigger ? &bitmap_icons[10] : &bitmap_icons[12];
   if (trigger == &ble_server) return *trigger ? &bitmap_icons[8] : &bitmap_icons[10];
 
   return nullptr; // Если триггер не найден
@@ -331,13 +335,13 @@ MenuItem deauthSubMenu[] {
 };
 
 MenuItem wifiSubMenu[] = {
-  { "Connect to Wi-Fi", &bitmap_icons[6], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},  // нужно будет добавить кнопку отключения
-  { "AP", &bitmap_icons[7], nullptr, nullptr, 0, &wifi_softAP, nullptr, [](){ return getBoolStatus(wifi_softAP); }, true, &startSoftAP },
-  { "Deauth", &bitmap_icons[7], nullptr, deauthSubMenu, sizeof(deauthSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
-  { "Beacon", &bitmap_icons[18], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_beacon_spamer, nullptr, nullptr, false, nullptr},
-  { "Probe", &bitmap_icons[24], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_probe_spamer, nullptr, nullptr, false, nullptr},
-  { "EvilPortal", &bitmap_icons[19], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "Sniffers", &bitmap_icons[20], nullptr, sniffersSubMenu, sizeof(sniffersSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr}
+  { "Connect Wi-Fi", &bitmap_icons[10], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},  // нужно будет добавить кнопку отключения
+  { "AP", &bitmap_icons[12], nullptr, nullptr, 0, &wifi_softAP, nullptr, [](){ return getBoolStatus(wifi_softAP); }, true, &startSoftAP },
+  { "Deauth", &bitmap_icons[12], nullptr, deauthSubMenu, sizeof(deauthSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
+  { "Beacon", &bitmap_icons[31], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_beacon_spamer, nullptr, nullptr, false, nullptr},
+  { "Probe", &bitmap_icons[20], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_probe_spamer, nullptr, nullptr, false, nullptr},
+  { "EvilPortal", &bitmap_icons[34], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "Sniffers", &bitmap_icons[33], nullptr, sniffersSubMenu, sizeof(sniffersSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr}
 };
 
 MenuItem bleSpamSubMenu[] {

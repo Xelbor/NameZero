@@ -102,7 +102,7 @@ void startMenu() {
 }
 
 void drawUpperMenu() {
-    M5Cardputer.Display.clear();
+    M5Cardputer.Display.fillRect(0, 0, M5Cardputer.Display.width(), 25, BLACK);
     M5Cardputer.Display.setTextSize(1);
     int screenWidth = M5Cardputer.Display.width();
     int screenHeight = M5Cardputer.Display.height();
@@ -114,19 +114,18 @@ void drawUpperMenu() {
     M5Cardputer.Display.fillRect(215, 10, 17, 9, MAINCOLOR);
     M5Cardputer.Display.fillRect(212, 13, 3, 3, MAINCOLOR);
     
-    if (!SD.cardType() == CARD_NONE) M5Cardputer.Display.drawBitmap(166, 7, image_sd_icon_bits, 14, 16, MAINCOLOR);
-    if (wifi_softAP) M5Cardputer.Display.drawBitmap(166, 7, image_wifi5_icon_bits, 19, 16, MAINCOLOR);
-    if (ble_server) M5Cardputer.Display.drawBitmap(150, 7, image_bluetooth_on_icon_bits, 14, 16, MAINCOLOR);
+    if (!SD.cardType() == CARD_NONE) M5Cardputer.Display.drawBitmap(168, 7, image_sd_icon_bits, 14, 16, MAINCOLOR);
+    if (wifi_softAP) M5Cardputer.Display.drawBitmap(147, 7, image_wifi5_icon_bits, 19, 16, MAINCOLOR);
+    if (ble_server) M5Cardputer.Display.drawBitmap(132, 7, image_bluetooth_on_icon_bits, 14, 16, MAINCOLOR);
 
     M5Cardputer.Display.setTextSize(1);
     M5Cardputer.Display.setFont(&Org_01);
     M5Cardputer.Display.drawString("100%", 188, 12);
-    M5Cardputer.Display.drawLine(0, 24, 240, 24, MAINCOLOR);  // Limitter Line
+    M5Cardputer.Display.drawLine(-14, 25, 266, 25, MAINCOLOR);  // Limitter Line
 }
 
 void drawMainMenu() {
-    M5Cardputer.Display.clear();
-    drawUpperMenu();
+    M5Cardputer.Display.fillRect(0, 26, M5Cardputer.Display.width(), M5Cardputer.Display.height() - 26, BLACK);  // Пытаемся избежать полной очистки экрана чтобы получилось все без мерцаний
     M5Cardputer.Display.setFreeFont();
 
     // Выбираемая иконка
@@ -173,7 +172,7 @@ void drawMainMenu() {
     // Выбранный пункт
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawBitmap(iconCenterX, iconCenterY + 6, mainMenuItems[item_selected].large_icon->data, mainMenuItems[item_selected].large_icon->width, mainMenuItems[item_selected].large_icon->height, MAINCOLOR);
-    M5Cardputer.Display.drawString(selectedItemText, textCenterX - 14, textCenterY + 47);
+    M5Cardputer.Display.drawString(selectedItemText, textCenterX - (textWidth / 2) + 2, textCenterY + 47);
 
     // Следующий пункт
     M5Cardputer.Display.setTextSize(1);
@@ -184,7 +183,7 @@ void drawMainMenu() {
 }
 
 void drawMenu(MenuItem* menu, int menuSize) {
-    M5Cardputer.Display.clear();
+    M5Cardputer.Display.fillRect(0, 26, M5Cardputer.Display.width(), M5Cardputer.Display.height() - 26, BLACK);
     M5Cardputer.Display.setTextSize(1);
 
     // Получаем ширину экрана
@@ -229,7 +228,7 @@ void drawMenu(MenuItem* menu, int menuSize) {
             M5Cardputer.Display.setFreeFont();
             if (textWidth > screenWidth / 2) {
                 y_offset += 5;
-                M5Cardputer.Display.setTextSize(1.6);
+                M5Cardputer.Display.setTextSize(2);
             } else {
                 M5Cardputer.Display.setTextSize(3);
             }
@@ -240,7 +239,7 @@ void drawMenu(MenuItem* menu, int menuSize) {
 
         // Отрисовка текста и иконки
         if (menu[current_index].getParamValue) {
-            itemText += " <" + String(menu[current_index].getParamValue()) + ">";
+            itemText += "  <" + String(menu[current_index].getParamValue()) + ">";
         }
 
         if (menu[current_index].value) {
@@ -411,7 +410,7 @@ void handleKeyboard() {
     unsigned long currentTime = millis();
     static unsigned long lastScrollTime = 0;
     static unsigned long scrollDelay = 0;
-    if (currentMenu == mainMenuItems && !isTerminal && !valueEdit) {
+    if (currentMenu == mainMenuItems && !appsMenu && !valueEdit) {
         if (M5Cardputer.Keyboard.isKeyPressed('/') || M5Cardputer.Keyboard.isKeyPressed(',')) {
             if (currentTime - lastScrollTime >= scrollDelay) {
                 if (M5Cardputer.Keyboard.isKeyPressed('/')) {
@@ -431,7 +430,7 @@ void handleKeyboard() {
         } else {
             scrollDelay = 0; // Сброс задержки, если клавиша отпущена
         }
-    } else if (!isTerminal && !valueEdit) {
+    } else if (!appsMenu && !valueEdit) {
         if (M5Cardputer.Keyboard.isKeyPressed('.') || M5Cardputer.Keyboard.isKeyPressed(';')) {
             if (currentTime - lastScrollTime >= scrollDelay) {
                 if (M5Cardputer.Keyboard.isKeyPressed('.')) { 
@@ -447,61 +446,61 @@ void handleKeyboard() {
                 needsRedraw = true;
                 lastScrollTime = currentTime;
                 scrollDelay = (scrollDelay == 0) ? SCROLL_START_DELAY : SCROLL_REPEAT_DELAY;
-            } else {
-                scrollDelay = 0; // Сброс задержки, если клавиша отпущена
             }
+        } else {
+            scrollDelay = 0; // Сброс задержки, если клавиша отпущена
         }
-        
-        if (M5Cardputer.Keyboard.isChange()) {
-            if (M5Cardputer.Keyboard.isKeyPressed(KEY_ENTER)) {
-                if (wifi_scanning && currentMenu == networksMenu) {
-                    wifi_scanning = false;
-                }
-    
-                if (currentMenu[item_selected].trigger) {
-                    *(currentMenu[item_selected].trigger) = !*(currentMenu[item_selected].trigger);
-                    if (currentMenu[item_selected].switchable) {
-                        currentMenu[item_selected].icon = getMenuItemIconStatus(currentMenu[item_selected].trigger);
-                        needsRedraw = true;
-                    }
-                }
-    
-                if (currentMenu[item_selected].action) {
-                    currentMenu[item_selected].action();
-                }
-    
-                if (!wifi_scanning && currentMenu[item_selected].subItems && currentMenu[item_selected].subItemCount > 0) {
-                    parentMenu = currentMenu;
-                    parentSelected = item_selected;
-                    parentMenuSize = currentMenuSize;
-                    currentMenuSize = currentMenu[item_selected].subItemCount;
-                    currentMenu = currentMenu[item_selected].subItems;
-                    item_selected = 0;
+    }
+
+    if (M5Cardputer.Keyboard.isChange()) {
+        if (M5Cardputer.Keyboard.isKeyPressed(KEY_ENTER)) {
+            if (wifi_scanning && currentMenu == networksMenu) {
+                wifi_scanning = false;
+            }
+
+            if (currentMenu[item_selected].trigger) {
+                *(currentMenu[item_selected].trigger) = !*(currentMenu[item_selected].trigger);
+                if (currentMenu[item_selected].switchable) {
+                    currentMenu[item_selected].icon = getMenuItemIconStatus(currentMenu[item_selected].trigger);
                     needsRedraw = true;
                 }
-    
+            }
+
+            if (currentMenu[item_selected].action) {
+                currentMenu[item_selected].action();
+            }
+
+            if (!wifi_scanning && currentMenu[item_selected].subItems && currentMenu[item_selected].subItemCount > 0) {
+                parentMenu = currentMenu;
+                parentSelected = item_selected;
+                parentMenuSize = currentMenuSize;
+                currentMenuSize = currentMenu[item_selected].subItemCount;
+                currentMenu = currentMenu[item_selected].subItems;
+                item_selected = 0;
                 needsRedraw = true;
             }
-    
-            if (M5Cardputer.Keyboard.isKeyPressed('`') || status.del) {
-                if (parentMenu) {
-                    currentMenu = parentMenu;
-                    currentMenuSize = parentMenuSize;
-                    item_selected = parentSelected;
-                    parentMenu = nullptr;
-    
-                    wifi_scanning = false;
-                    wifi_deauther_spamer_target = false;
-                    wifi_beacon_spamer = false;
-                    wifi_probe_spamer = false;
-                    appsMenu = false;
-                    attackIsRunning = false;
-                } else {
-                    currentMenu = mainMenuItems;
-                    currentMenuSize = NUM_ITEMS;
-                }
-                needsRedraw = true;
+
+            needsRedraw = true;
+        }
+
+        if (M5Cardputer.Keyboard.isKeyPressed('`') || status.del) {
+            if (parentMenu) {
+                currentMenu = parentMenu;
+                currentMenuSize = parentMenuSize;
+                item_selected = parentSelected;
+                parentMenu = nullptr;
+
+                wifi_scanning = false;
+                wifi_deauther_spamer_target = false;
+                wifi_beacon_spamer = false;
+                wifi_probe_spamer = false;
+                appsMenu = false;
+                attackIsRunning = false;
+            } else {
+                currentMenu = mainMenuItems;
+                currentMenuSize = NUM_ITEMS;
             }
+            needsRedraw = true;
         }
     }
 
@@ -578,7 +577,6 @@ void setup() {
     auto cfg = M5.config();
     M5Cardputer.begin(cfg, true);
 
-    M5Cardputer.Display.clear();
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextColor(MAINCOLOR);
     setBrightness(255);
@@ -608,6 +606,8 @@ void setup() {
 
     // Выводим страницы
     delay(2000);
+    M5Cardputer.Display.clear();
+    drawUpperMenu();
     drawMainMenu();
     //drawMenu(currentMenu, currentMenuSize);
 }
