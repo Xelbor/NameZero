@@ -11,10 +11,6 @@ extern "C" {
 #include <esp_adc_cal.h>
 #include <soc/adc_channel.h>
 
-#include <SD.h>
-#include <FS.h>
-#include <SPI.h>
-
 #include "Terminal.h"
 
 #include "gui.h"
@@ -57,11 +53,6 @@ int display_items = 5;    // Количиство отображаемых пу�
 
 const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
 const unsigned long SCROLL_REPEAT_DELAY = 50; // Скорость автоповтора
-
-int sck = 40;
-int miso = 39;
-int mosi = 14;
-int cs = 12;
 
 void setBrightness(int bright) {
     analogWrite(TFT_BL, bright);
@@ -126,7 +117,7 @@ void drawUpperMenu() {
 
 void drawMainMenu() {
     M5Cardputer.Display.fillRect(0, 26, M5Cardputer.Display.width(), M5Cardputer.Display.height() - 26, BLACK);  // Пытаемся избежать полной очистки экрана чтобы получилось все без мерцаний
-    M5Cardputer.Display.setFreeFont();
+    M5Cardputer.Display.setFont(&fonts::Font0);
 
     // Выбираемая иконка
     int iconCenterX = (M5Cardputer.Display.width() - mainMenuItems[item_selected].large_icon->width) / 2;
@@ -180,6 +171,7 @@ void drawMainMenu() {
     M5Cardputer.Display.drawString(nextText, nextTextX, nextTextY + 10);
 
     M5Cardputer.Display.drawBitmap(220, 65, image_ArrowRight_icon_bits, 8, 14, MAINCOLOR);
+
 }
 
 void drawMenu(MenuItem* menu, int menuSize) {
@@ -225,7 +217,7 @@ void drawMenu(MenuItem* menu, int menuSize) {
 
         if (current_index == item_selected) {
             M5Cardputer.Display.drawRoundRect(5, 66, 210, boxHeight, 4, MAINCOLOR);
-            M5Cardputer.Display.setFreeFont();
+            M5Cardputer.Display.setFont(&fonts::Font0);
             if (textWidth > screenWidth / 2) {
                 y_offset += 5;
                 M5Cardputer.Display.setTextSize(2);
@@ -233,7 +225,7 @@ void drawMenu(MenuItem* menu, int menuSize) {
                 M5Cardputer.Display.setTextSize(3);
             }
         } else {
-            M5Cardputer.Display.setFreeFont();
+            M5Cardputer.Display.setFont(&fonts::Font0);
             M5Cardputer.Display.setTextSize(2);
         }
 
@@ -294,7 +286,7 @@ void drawTerminal() {
     appsMenu = true;
     M5Cardputer.Display.clear();
     drawUpperMenu();
-    M5Cardputer.Display.setFreeFont();
+    M5Cardputer.Display.setFont(&fonts::Font0);
     M5Cardputer.Display.setTextSize(1);
     printToTerminal("Press opt+q to quit or type \"exit\"", ORANGE);
     printToTerminal("Type \"help\" to print help message", ORANGE);
@@ -554,31 +546,16 @@ void resourceMonitor(void *parameter) {
     }
 }*/
 
-void initializeSD() {
-    SPI.begin(sck, miso, mosi, cs);
-    if (!SD.begin(cs)) {
-        Serial.println("Card Mount Failed");
-        return;
-    }
-
-    uint8_t cardType = SD.cardType();
-    
-    if(cardType == CARD_NONE){
-        Serial.println("No SD card attached");
-        return;
-    }
-}
-
 void setup() {
     Serial.begin(115200);
 
     // Инициализация
-    initializeSD();
     auto cfg = M5.config();
     M5Cardputer.begin(cfg, true);
 
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextColor(MAINCOLOR);
+    initializeSD();
     setBrightness(255);
 
     startMenu();
