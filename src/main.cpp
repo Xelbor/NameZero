@@ -12,6 +12,7 @@ extern "C" {
 #include <soc/adc_channel.h>
 
 #include "Terminal.h"
+#include "mic.h"
 
 #include "gui.h"
 //#include "wifi/wifi.h"
@@ -28,7 +29,7 @@ extern "C" {
 
 //TaskHandle_t handleEncoderTask;
 //TaskHandle_t redrawTaskHandle;
-TaskHandle_t attackTask;
+TaskHandle_t timerTaskHandle = NULL;
 
 M5Canvas canvas(&M5Cardputer.Display);
 
@@ -53,6 +54,16 @@ int display_items = 5;    // Количиство отображаемых пу�
 
 const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
 const unsigned long SCROLL_REPEAT_DELAY = 50; // Скорость автоповтора
+
+enum TimerStatus {
+    TIMER_IDLE,
+    TIMER_RUNNING,
+    TIMER_FINISHED
+};
+
+TimerStatus timerStatus = TIMER_IDLE;
+
+int screen_off_time = 10;
 
 void setBrightness(int bright) {
     analogWrite(TFT_BL, bright);
@@ -546,8 +557,38 @@ void resourceMonitor(void *parameter) {
     }
 }*/
 
+void startTimer(uint32_t duration_ms, BaseType_t coreID = 1) {
+    if (timerStatus == TIMER_RUNNING) return; // Уже запущен
+  
+    timerStatus = TIMER_RUNNING;
+  
+    // Задача таймера
+    auto timerTask = [](void *param) {
+      uint32_t delayTime = *((uint32_t*)param);
+      vTaskDelay(pdMS_TO_TICKS(delayTime));  // Задержка в мс
+      timerStatus = TIMER_FINISHED;
+      vTaskDelete(NULL);  // Удаление задачи по завершению
+    };
+  
+    // Копируем значение, чтобы не было dangling указателя
+    uint32_t *durationCopy = new uint32_t(duration_ms);
+  
+    // Создаем задачу таймера
+    xTaskCreatePinnedToCore(
+      timerTask,            // функция задачи
+      "TimerTask",          // имя
+      2048,                 // стек
+      durationCopy,         // аргумент
+      1,                    // приоритет
+      &timerTaskHandle,     // хэндл задачи
+      coreID                // ядро
+    );
+}
+
 void setup() {
     Serial.begin(115200);
+    pinMode(0, INPUT);
+    pinMode(10, INPUT);
 
     // Инициализация
     auto cfg = M5.config();
@@ -555,13 +596,24 @@ void setup() {
 
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextColor(MAINCOLOR);
+    rec_data = (typeof(rec_data))heap_caps_malloc(record_size * sizeof(int16_t), MALLOC_CAP_8BIT);
+    memset(rec_data, 0, record_size * sizeof(int16_t));
+    M5Cardputer.Speaker.setVolume(0);
+    M5Cardputer.Speaker.end();
+    M5Cardputer.Mic.begin();
     initializeSD();
     setBrightness(255);
 
     startMenu();
-
-    pinMode(0, INPUT);
-    pinMode(10, INPUT);     // That pin reads the battery voltage
+    startTimer(2000, 0);
+    while (timerStatus == TIMER_RUNNING) {
+        M5Cardputer.update();
+        if (M5Cardputer.Keyboard.isChange()) {
+            if (M5Cardputer.Keyboard.isPressed()) {
+                timerStatus = TIMER_FINISHED;
+            }
+        }
+    }
 
     /*
     ESP_ERROR_CHECK(esp_netif_init());
@@ -578,14 +630,13 @@ void setup() {
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));*/
     
-    //xTaskCreatePinnedToCore(handleEncoder, "handleEncoderTask", 10000, NULL, 1, &handleEncoderTask, 1);
     //xTaskCreatePinnedToCore(redrawTask, "redrawTask", 2048, NULL, 1, &redrawTaskHandle, 0);
 
     // Выводим страницы
-    delay(2000);
     M5Cardputer.Display.clear();
     drawUpperMenu();
     drawMainMenu();
+    startTimer(screen_off_time / 2, 1);
     //drawMenu(currentMenu, currentMenuSize);
 }
 
