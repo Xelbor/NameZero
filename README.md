@@ -1,6 +1,6 @@
 # NameZero
 
-NameZero - is a firmware for ESP32 family devices. This firmware until not ready for usage, but I'm working on it. It will include a Sub-GHZ, IR, BruteForcing, RFID(NFC and 125khz Reader/Writer/Emulator), WiFi Attacks, BLE Attacks, BadUSB, third party applications and much more.
+NameZero - is a firmware for ESP32 family devices. This firmware until not ready for usage, but I'm working on it. It will include a Sub-GHZ, IR, BruteForcing, RFID(NFC and 125khz Reader/Writer/Emulator), WiFi Attacks, BLE Attacks, BadUSB, third party applications, terminal(only for cardputer) and much more.
 
 # How to install this?
 
