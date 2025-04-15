@@ -27,8 +27,6 @@ extern "C" {
 #define MAINCOLOR TFT_ORANGE
 #define TFT_BL 38
 
-//TaskHandle_t handleEncoderTask;
-//TaskHandle_t redrawTaskHandle;
 TaskHandle_t timerTaskHandle = NULL;
 
 M5Canvas canvas(&M5Cardputer.Display);
@@ -39,7 +37,7 @@ MenuItem* parentMenu = nullptr; // Саб-меню
 bool attackIsRunning = false;
 bool needsRedraw = false;
 
-bool handlingKeyboard = true;
+bool keyboardPress = false;
 
 int item_selected = 0; // which item in the menu is selected
 int parentSelected = 0;
@@ -63,7 +61,10 @@ enum TimerStatus {
 
 TimerStatus timerStatus = TIMER_IDLE;
 
-int screen_off_time = 10;
+const int screen_off_time = 20000; // in seconds
+unsigned long lastActivityTime = 0;
+bool screenDimmed = false;
+bool screenOff = false;
 
 void setBrightness(int bright) {
     analogWrite(TFT_BL, bright);
@@ -129,6 +130,7 @@ void drawUpperMenu() {
 void drawMainMenu() {
     M5Cardputer.Display.fillRect(0, 26, M5Cardputer.Display.width(), M5Cardputer.Display.height() - 26, BLACK);  // Пытаемся избежать полной очистки экрана чтобы получилось все без мерцаний
     M5Cardputer.Display.setFont(&fonts::Font0);
+    M5Cardputer.Display.setTextSize(1);
 
     // Выбираемая иконка
     int iconCenterX = (M5Cardputer.Display.width() - mainMenuItems[item_selected].large_icon->width) / 2;
@@ -499,6 +501,7 @@ void handleKeyboard() {
                 wifi_probe_spamer = false;
                 appsMenu = false;
                 attackIsRunning = false;
+                drawUpperMenu();
             } else {
                 currentMenu = mainMenuItems;
                 currentMenuSize = NUM_ITEMS;
@@ -514,18 +517,6 @@ void handleKeyboard() {
         drawMainMenu();
         needsRedraw = false;
     }
-}
-
-void redrawTask(void *parameter) {
-    /*
-    while (true) {
-        // Проверка условия для перерисовки экрана
-        if (needsRedraw && !appsMenu) {
-            drawMenu(currentMenu, currentMenuSize); // Перерисовка экрана
-            needsRedraw = false; // Сбрасываем флаг
-        }
-        delay(50);
-    }*/
 }
 
 /*
@@ -585,6 +576,14 @@ void startTimer(uint32_t duration_ms, BaseType_t coreID = 1) {
     );
 }
 
+void stopTimer() {
+    if (timerStatus == TIMER_RUNNING && timerTaskHandle != NULL) {
+      vTaskDelete(timerTaskHandle);
+      timerTaskHandle = NULL;
+      timerStatus = TIMER_IDLE;
+    }
+}
+
 void setup() {
     Serial.begin(115200);
     pinMode(0, INPUT);
@@ -596,8 +595,6 @@ void setup() {
 
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextColor(MAINCOLOR);
-    rec_data = (typeof(rec_data))heap_caps_malloc(record_size * sizeof(int16_t), MALLOC_CAP_8BIT);
-    memset(rec_data, 0, record_size * sizeof(int16_t));
     M5Cardputer.Speaker.setVolume(0);
     M5Cardputer.Speaker.end();
     M5Cardputer.Mic.begin();
@@ -636,12 +633,49 @@ void setup() {
     M5Cardputer.Display.clear();
     drawUpperMenu();
     drawMainMenu();
-    startTimer(screen_off_time / 2, 1);
-    //drawMenu(currentMenu, currentMenuSize);
+}
+
+void resetScreenState() {
+    analogWrite(TFT_BL, 255);
+    screenDimmed = false;
+    screenOff = false;
+    lastActivityTime = millis();
+}
+
+void checkScreenTimeout() {
+    unsigned long currentTime = millis();
+    unsigned long inactiveTime = currentTime - lastActivityTime;
+
+    if (M5Cardputer.Keyboard.isPressed()) {
+        resetScreenState();
+    }
+
+    if (timerStatus == TIMER_IDLE) {
+        startTimer(screen_off_time);
+        lastActivityTime = currentTime; // Первоначальный запуск
+    }
+
+    if (timerStatus == TIMER_FINISHED) {
+        // Сбросим таймер, если пользователь активен
+        startTimer(screen_off_time);
+        timerStatus = TIMER_IDLE;
+    }
+
+    if (inactiveTime >= screen_off_time / 2 && !screenDimmed) {
+        analogWrite(TFT_BL, 127);
+        screenDimmed = true;
+        screenOff = false;
+    }
+
+    if (inactiveTime >= screen_off_time && !screenOff) {
+        analogWrite(TFT_BL, 0);
+        screenOff = true;
+    }
 }
 
 void loop() {
     M5Cardputer.update();
+    checkScreenTimeout();
     handleKeyboard();
     delay(50);
 }

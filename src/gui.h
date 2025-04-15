@@ -223,7 +223,7 @@ extern void checkCPUsage();
 extern void ble_start_server();
 extern void disconnect_all_clients();
 extern void drawTerminal();
-extern void drawMicTest();
+extern void drawMicWaveform();
 
 struct Bitmap {
   const unsigned char* data; // Указатель на массив с битмапом
@@ -364,7 +364,7 @@ MenuItem settingsSubMenu[] {
 };
 
 MenuItem othersSubMenu[] {
-  { "Mic Test", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, &drawMicTest},
+  { "Mic Test", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, &drawMicWaveform},
   { "Clock", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "USB Keyboard", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "System Info", &bitmap_icons[20], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},

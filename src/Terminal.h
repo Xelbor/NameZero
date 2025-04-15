@@ -283,5 +283,7 @@ void handleTerminalInput() {
                 M5Cardputer.Display.fillRect(cursorX, cursorY, 8, 12, TFT_ORANGE);
             }
         }
+
+        delay(50);
     }
 }
