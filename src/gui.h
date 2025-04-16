@@ -223,7 +223,7 @@ extern void checkCPUsage();
 extern void ble_start_server();
 extern void disconnect_all_clients();
 extern void drawTerminal();
-extern void drawMicWaveform();
+extern void drawMicTest();
 
 struct Bitmap {
   const unsigned char* data; // Указатель на массив с битмапом
@@ -321,7 +321,7 @@ MenuItem* networksMenu = nullptr;
 
 MenuItem attackSubMenu[] {
   { "Attack Time:", &bitmap_icons[24], nullptr, nullptr, 0, &valueEdit, &attackTime, nullptr, false, nullptr },
-  { "Start", &bitmap_icons[25], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, &startAttack }
+  { "Start", &bitmap_icons[25], nullptr, nullptr, 0, &appsMenu, nullptr, nullptr, false, &startAttack }
 };
 
 MenuItem sniffersSubMenu[] {
@@ -364,7 +364,7 @@ MenuItem settingsSubMenu[] {
 };
 
 MenuItem othersSubMenu[] {
-  { "Mic Test", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, &drawMicWaveform},
+  { "Mic Test", &bitmap_icons[23], nullptr, nullptr, 0, &appsMenu, nullptr, nullptr, false, &drawMicTest},
   { "Clock", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "USB Keyboard", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "System Info", &bitmap_icons[20], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
@@ -379,7 +379,7 @@ MenuItem mainMenuItems[] = {
   { "RFID", &bitmap_icons[0], &bitmap_icons[1], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "NFC", &bitmap_icons[0], &bitmap_icons[1], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "IButton", &bitmap_icons[2], &bitmap_icons[3], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
-  { "Terminal", &bitmap_icons[17], &bitmap_icons[18], nullptr, 0, nullptr, nullptr, nullptr, false, &drawTerminal },
+  { "Terminal", &bitmap_icons[17], &bitmap_icons[18], nullptr, 0, &appsMenu, nullptr, nullptr, false, &drawTerminal },
   { "Files", &bitmap_icons[26], &bitmap_icons[27], nullptr, 0, nullptr, nullptr, nullptr, false, nullptr },
   { "Others", &bitmap_icons[29], &bitmap_icons[30], othersSubMenu, sizeof(othersSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
   { "Settings", &bitmap_icons[21], &bitmap_icons[22], settingsSubMenu, sizeof(settingsSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr }
