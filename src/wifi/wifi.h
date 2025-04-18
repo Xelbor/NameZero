@@ -53,12 +53,29 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
     }
 }
 
+/*
 extern "C" int ieee80211_raw_frame_sanity_check(int32_t arg, int32_t arg2, int32_t arg3) {
   return 0;
-}
+}*/
 
 extern "C" int lwip_hook_ip6_input(void *arg) {  // For Cardputer
     return 0;
+}
+
+void wifi_start() {
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_netif_create_default_wifi_ap();
+
+    wifi_init_config_t wifi_cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&wifi_cfg));
 }
 
 void wifi_init_softap() {
