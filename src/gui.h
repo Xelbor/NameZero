@@ -197,6 +197,10 @@ const unsigned char bitmap_scrollbar_background [] = {
 	0x00, 0x00, 0x00, 0x00
 };
 
+static const unsigned char image_microphone_icon_bits[] = {0x03,0x80,0x07,0xc0,0x05,0x40,0x07,0xc0,0x05,0x40,0x07,0xc0,0x05,0x40,0x07,0xc0,0x17,0xd0,0x13,0x90,0x08,0x20,0x07,0xc0,0x01,0x00,0x01,0x00,0x07,0xc0,0x00,0x00};
+
+static const unsigned char image_usb_cable_connected_icon_bits[] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x03,0xe0,0x04,0xc0,0x08,0x04,0xc8,0x06,0xff,0xff,0xc2,0x06,0x02,0x04,0x01,0x30,0x00,0xf8,0x00,0x30,0x00,0x00,0x00,0x00};
+
 const unsigned char image_ArrowRight_icon_bits[] = {0xc0,0xc0,0xf0,0xf0,0xfc,0xfc,0xff,0xff,0xfc,0xfc,0xf0,0xf0,0xc0,0xc0};
 
 const unsigned char image_ArrowLeft_icon_bits[] = {0x03,0x03,0x0f,0x0f,0x3f,0x3f,0xff,0xff,0x3f,0x3f,0x0f,0x0f,0x03,0x03};
@@ -208,10 +212,10 @@ const unsigned char image_ArrowDown_icon_bits[] = {0xfe,0x7c,0x38,0x10};
 bool wifi_softAP = false;
 bool wifi_scanning = false;
 bool wifi_ap_cloner = false;
+bool wifi_connect_sta = false;
 bool wifi_deauther_spamer = false;
 bool wifi_deauther_spamer_target = false;
 bool wifi_beacon_spamer = false;
-bool wifi_probe_spamer = false;
 bool ble_server = false;
 bool ble_ios_spammer = false;
 bool valueEdit = false;
@@ -231,7 +235,7 @@ struct Bitmap {
   int height;                // Высота изображения
 };
 
-const Bitmap bitmap_icons[39] = {
+const Bitmap bitmap_icons[41] = {
   { image_rfid_icon_bits, 13, 16 },                   // 0
   { image_rfid_large_icon_bits, 37, 46 },             // 1
   { image_ibutton_icon_bits, 15, 16 },                // 2
@@ -270,7 +274,9 @@ const Bitmap bitmap_icons[39] = {
   { image_time_icon_bits, 11, 16 },                   // 35
   { image_play_icon_bits, 15, 16},                    // 36
   { image_mail_icon_bits, 17, 16 },                   // 37
-  { image_radio_streaming_icon_bits, 17, 16 }         // 38
+  { image_radio_streaming_icon_bits, 17, 16 },        // 38
+  { image_microphone_icon_bits, 15, 16 },             // 39
+  { image_usb_cable_connected_icon_bits, 15, 16 },    // 40
 };
 
 struct IconStatus {
@@ -287,10 +293,10 @@ const IconStatus iconMappings[] = {
 
 
 const Bitmap* get_wifi_icon(int rssi) {
-    if (rssi >= -50) return &bitmap_icons[6];
-    if (rssi >= -70) return &bitmap_icons[5];
-    if (rssi >= -85) return &bitmap_icons[4];
-    return &bitmap_icons[3];
+    if (rssi >= -50) return &bitmap_icons[8];
+    if (rssi >= -70) return &bitmap_icons[9];
+    if (rssi >= -85) return &bitmap_icons[10];
+    return &bitmap_icons[7];
 }
 
 const char* getBoolStatus(bool trigger) {
@@ -335,12 +341,15 @@ MenuItem deauthSubMenu[] {
   { "Deauth All", &bitmap_icons[7], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_deauther_spamer, nullptr, nullptr, false, &startAttack },
 };
 
+MenuItem staSubMenu[] {
+
+};
+
 MenuItem wifiSubMenu[] = {
-  { "Connect Wi-Fi", &bitmap_icons[10], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},  // нужно будет добавить кнопку отключения
+  { "Connect Wi-Fi", &bitmap_icons[10], nullptr, networksMenu, sizeof(&networksMenu) / sizeof(MenuItem), &wifi_connect_sta, nullptr, nullptr, false, &drawWiFiNetworksMenu },  // нужно будет добавить кнопку отключения
   { "AP", &bitmap_icons[12], nullptr, nullptr, 0, &wifi_softAP, nullptr, [](){ return getBoolStatus(wifi_softAP); }, true, &startSoftAP },
   { "Deauth", &bitmap_icons[12], nullptr, deauthSubMenu, sizeof(deauthSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
   { "Beacon", &bitmap_icons[31], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_beacon_spamer, nullptr, nullptr, false, nullptr},
-  { "Probe", &bitmap_icons[20], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_probe_spamer, nullptr, nullptr, false, nullptr},
   { "EvilPortal", &bitmap_icons[34], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "Sniffers", &bitmap_icons[33], nullptr, sniffersSubMenu, sizeof(sniffersSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr}
 };
@@ -360,13 +369,13 @@ MenuItem bleSubMenu[] {
 };
 
 MenuItem settingsSubMenu[] {
-
+  {"Decay time", }
 };
 
 MenuItem othersSubMenu[] {
-  { "Mic Test", &bitmap_icons[23], nullptr, nullptr, 0, &appsMenu, nullptr, nullptr, false, &drawMicTest},
-  { "Clock", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
-  { "USB Keyboard", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "Mic Test", &bitmap_icons[39], nullptr, nullptr, 0, &appsMenu, nullptr, nullptr, false, &drawMicTest},
+  { "Clock", &bitmap_icons[35], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
+  { "USB Keyboard", &bitmap_icons[40], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "System Info", &bitmap_icons[20], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
   { "GPIO", &bitmap_icons[23], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr},
 };

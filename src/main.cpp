@@ -5,17 +5,17 @@ extern "C" {
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "wifi/configure_wifi.h"
+//#include "wifi/configure_wifi.h"
 }
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
 #include <soc/adc_channel.h>
 
 #include "Terminal.h"
-#include "mic.h"
+#include "Timers.h"
 
 #include "gui.h"
-//#include "wifi/wifi.h"
+#include "wifi/wifi.h"
 //#include "ble.h"
 
 // Font
@@ -27,11 +27,21 @@ extern "C" {
 #define MAINCOLOR TFT_ORANGE
 #define TFT_BL 38
 
+#define BATTERY_PIN 10
+
+#define BATTERY_MIN_VOLTAGE 3.0
+#define BATTERY_MAX_VOLTAGE 4.2
+#define VOLTAGE_DIVIDER_RATIO 2.0
+
 TaskHandle_t timerTaskHandle = NULL;
 
 M5Canvas canvas(&M5Cardputer.Display);
 
 static int16_t *rec_data      = nullptr;
+static constexpr const size_t record_number     = 256;
+static constexpr const size_t record_length     = 240;
+static constexpr const size_t record_size       = record_number * record_length;
+static constexpr const size_t record_samplerate = 17000;
 
 MenuItem* currentMenu = mainMenuItems; // Текущее меню
 MenuItem* parentMenu = nullptr; // Саб-меню
@@ -55,41 +65,51 @@ int display_items = 5;    // Количиство отображаемых пу�
 const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
 const unsigned long SCROLL_REPEAT_DELAY = 50; // Скорость автоповтора
 
-enum TimerStatus {
-    TIMER_IDLE,
-    TIMER_RUNNING,
-    TIMER_FINISHED
-};
-
-TimerStatus timerStatus = TIMER_IDLE;
-
-const int screen_off_time = 20000; // in seconds
+const int screen_off_time = 20; // in seconds
 unsigned long lastActivityTime = 0;
 bool screenDimmed = false;
 bool screenOff = false;
 
-void setBrightness(int bright) {
-    analogWrite(TFT_BL, bright);
+Timer* startMenuTimer;
+Timer* batTimer;
+Timer* dimTimer;
+
+float readBatteryVoltage() {
+    int raw = analogRead(BATTERY_PIN);
+    float voltage = (raw / 4095.0) * 3.3;  // 12-бит АЦП на ESP32
+    return voltage * VOLTAGE_DIVIDER_RATIO;
+  }
+  
+int getBatteryPercent() {
+    float voltage = readBatteryVoltage();
+    int percent = (voltage - BATTERY_MIN_VOLTAGE) / 
+                  (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100;
+    percent = constrain(percent, 0, 100);
+    return percent;
 }
 
-/*
-uint8_t getBatteryProcents() {
-    uint8_t bat_adc_ch = ADC1_GPIO10_CHANNEL;  // Канал ADC1
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten((adc1_channel_t)bat_adc_ch, ADC_ATTEN_DB_12);
+void updateBatteryProcents() {
+    if (batTimer->status == TIMER_FINISHED)
+    {
+        int percent = getBatteryPercent();
 
-    // Калибровка ADC
-    esp_adc_cal_characteristics_t adc_chars;
-    esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, 3600, &adc_chars);
+        // Очищаем область батареи
+        M5Cardputer.Display.fillRect(186, 8, 22, 12, BLACK);
+        M5Cardputer.Display.fillRect(215, 10, 17, 9, BLACK);
 
-    // Чтение данных
-    uint16_t bat_adc = adc1_get_raw((adc1_channel_t)bat_adc_ch);
-    uint16_t bat_voltage = esp_adc_cal_raw_to_voltage(bat_adc, &adc_chars);
+        // Процентная заливка
+        int fillWidth = map(percent, 0, 100, 0, 17);
+        M5Cardputer.Display.drawBitmap(210, 7, image_battery_empty_bits, 24, 16, MAINCOLOR);
+        int fillX = 215 + (17 - fillWidth);
+        M5Cardputer.Display.fillRect(fillX, 10, fillWidth, 9, MAINCOLOR);
 
-    // Расчет процентов
-    uint8_t percent = (bat_voltage - 3300) * 100 / (4150 - 3350);
-    return percent;
-}*/
+        M5Cardputer.Display.setTextSize(1);
+        M5Cardputer.Display.setFont(&Org_01);
+        M5Cardputer.Display.drawString(String(percent) + "%", 188, 12);
+
+        batTimer = startTimer(5000, 1);
+    }
+}
 
 void startMenu() {
     M5Cardputer.Display.clear();
@@ -115,18 +135,23 @@ void drawUpperMenu() {
     M5Cardputer.Display.setFont(&FreeMonoBoldOblique12pt7b);
     M5Cardputer.Display.drawString("NameZero", screenWidth * 0.03, screenHeight * 0.03);
 
+    // Заряд батареи
+    int percent = getBatteryPercent();
+    int fillWidth = map(percent, 0, 100, 0, 17);
+
     M5Cardputer.Display.drawBitmap(210, 7, image_battery_empty_bits, 24, 16, MAINCOLOR);
-    M5Cardputer.Display.fillRect(215, 10, 17, 9, MAINCOLOR);
-    M5Cardputer.Display.fillRect(212, 13, 3, 3, MAINCOLOR);
-    
+    int fillX = 215 + (17 - fillWidth);
+    M5Cardputer.Display.fillRect(fillX, 10, fillWidth, 9, MAINCOLOR);
+
+    // Другие иконки
     if (!SD.cardType() == CARD_NONE) M5Cardputer.Display.drawBitmap(168, 7, image_sd_icon_bits, 14, 16, MAINCOLOR);
     if (wifi_softAP) M5Cardputer.Display.drawBitmap(147, 7, image_wifi5_icon_bits, 19, 16, MAINCOLOR);
     if (ble_server) M5Cardputer.Display.drawBitmap(132, 7, image_bluetooth_on_icon_bits, 14, 16, MAINCOLOR);
 
     M5Cardputer.Display.setTextSize(1);
     M5Cardputer.Display.setFont(&Org_01);
-    M5Cardputer.Display.drawString("100%", 188, 12);
-    M5Cardputer.Display.drawLine(-14, 25, 266, 25, MAINCOLOR);  // Limitter Line
+    M5Cardputer.Display.drawString(String(percent) + "%", 188, 12);
+    M5Cardputer.Display.drawLine(0, 25, 266, 25, MAINCOLOR);  // Limitter Line
 }
 
 void drawMainMenu() {
@@ -363,11 +388,10 @@ void drawMicTest() {
 }
 
 void drawWiFiNetworksMenu() {
-  /*
-    M5Cardputer.Display.fillRect(0, 46, 280, 240 - 46, TFT_BLACK);
+    M5Cardputer.Display.fillRect(0, 26, 240, 109, BLACK);
     M5Cardputer.Display.setTextFont(1);
     M5Cardputer.Display.setTextSize(2);
-    M5Cardputer.Display.drawString("Scanning...", 5, 55);
+    M5Cardputer.Display.drawString("Scanning...", 5, 37);
     
     wifi_scanning = true;
     wifi_scan();
@@ -380,10 +404,12 @@ void drawWiFiNetworksMenu() {
     // Создаем новое меню
     networksMenu = new MenuItem[wifi_ap_count];
 
+    MenuItem* selectedSubMenu = wifi_connect_sta ? nullptr : attackSubMenu;
+
     for (int i = 0; i < wifi_ap_count; i++) {
         networksMenu[i].name = wifi_aps[i].ssid;
         networksMenu[i].icon = get_wifi_icon(wifi_aps[i].rssi);
-        networksMenu[i].subItems = attackSubMenu;
+        networksMenu[i].subItems = selectedSubMenu;
         networksMenu[i].subItemCount = 2;
         networksMenu[i].trigger = nullptr;
         networksMenu[i].value = nullptr;
@@ -399,15 +425,15 @@ void drawWiFiNetworksMenu() {
     currentMenuSize = wifi_ap_count;
     item_selected = 0;
 
-    drawMenu(currentMenu, currentMenuSize);*/
+    drawMenu(currentMenu, currentMenuSize);
 }
 
-void startSoftAP() {/*
+void startSoftAP() {
     if (wifi_softAP) {
         wifi_init_softap();
     } else {
         ESP_ERROR_CHECK(esp_wifi_stop());
-    }*/
+    }
 }
 
 void startAttackTask( void * parameter ) {
@@ -551,7 +577,6 @@ void handleKeyboard() {
                 wifi_scanning = false;
                 wifi_deauther_spamer_target = false;
                 wifi_beacon_spamer = false;
-                wifi_probe_spamer = false;
                 appsMenu = false;
                 attackIsRunning = false;
                 drawUpperMenu();
@@ -601,54 +626,18 @@ void resourceMonitor(void *parameter) {
     }
 }*/
 
-void startTimer(uint32_t duration_ms, BaseType_t coreID = 1) {
-    if (timerStatus == TIMER_RUNNING) return; // Уже запущен
-  
-    timerStatus = TIMER_RUNNING;
-  
-    // Задача таймера
-    auto timerTask = [](void *param) {
-      uint32_t delayTime = *((uint32_t*)param);
-      vTaskDelay(pdMS_TO_TICKS(delayTime));  // Задержка в мс
-      timerStatus = TIMER_FINISHED;
-      vTaskDelete(NULL);  // Удаление задачи по завершению
-    };
-  
-    // Копируем значение, чтобы не было dangling указателя
-    uint32_t *durationCopy = new uint32_t(duration_ms);
-  
-    // Создаем задачу таймера
-    xTaskCreatePinnedToCore(
-      timerTask,            // функция задачи
-      "TimerTask",          // имя
-      2048,                 // стек
-      durationCopy,         // аргумент
-      1,                    // приоритет
-      &timerTaskHandle,     // хэндл задачи
-      coreID                // ядро
-    );
-}
-
-void stopTimer() {
-    if (timerStatus == TIMER_RUNNING && timerTaskHandle != NULL) {
-      vTaskDelete(timerTaskHandle);
-      timerTaskHandle = NULL;
-      timerStatus = TIMER_IDLE;
-    }
-}
-
 void setup() {
     Serial.begin(115200);
-    pinMode(0, INPUT);
-    pinMode(10, INPUT);
+    pinMode(BATTERY_PIN, INPUT);
 
     // Инициализация
-    auto cfg = M5.config();
-    M5Cardputer.begin(cfg, true);
+    auto display_cfg = M5.config();
+    M5Cardputer.begin(display_cfg, true);
 
     M5Cardputer.Display.startWrite();
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextColor(MAINCOLOR);
+    M5Cardputer.Display.setBrightness(255);
     M5Cardputer.Speaker.setVolume(0);
 
     rec_data = (int16_t*) heap_caps_malloc(record_size * sizeof(int16_t), MALLOC_CAP_8BIT);
@@ -657,83 +646,42 @@ void setup() {
     M5Cardputer.Speaker.end();
     M5Cardputer.Mic.begin();
     initializeSD();
-    setBrightness(255);
+
+    startMenuTimer = startTimer(2000, 0);
 
     startMenu();
-    startTimer(2000, 0);
-    while (timerStatus == TIMER_RUNNING) {
+    while (startMenuTimer->status == TIMER_RUNNING) {
         M5Cardputer.update();
-        if (M5Cardputer.Keyboard.isChange()) {
-            if (M5Cardputer.Keyboard.isPressed()) {
-                timerStatus = TIMER_FINISHED;
-            }
+        if (M5Cardputer.Keyboard.isPressed()) {
+            startMenuTimer->status = TIMER_FINISHED;
         }
     }
 
-    /*
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+      ESP_ERROR_CHECK(nvs_flash_erase());
+      ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     esp_netif_create_default_wifi_ap();
 
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));*/
-    
-    //xTaskCreatePinnedToCore(redrawTask, "redrawTask", 2048, NULL, 1, &redrawTaskHandle, 0);
+    wifi_init_config_t wifi_cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&wifi_cfg));
 
     // Выводим страницы
     M5Cardputer.Display.clear();
     drawUpperMenu();
     drawMainMenu();
-}
-
-void resetScreenState() {
-    analogWrite(TFT_BL, 255);
-    screenDimmed = false;
-    screenOff = false;
-    lastActivityTime = millis();
-}
-
-void checkScreenTimeout() {
-    unsigned long currentTime = millis();
-    unsigned long inactiveTime = currentTime - lastActivityTime;
-
-    if (M5Cardputer.Keyboard.isPressed()) {
-        resetScreenState();
-    }
-
-    if (timerStatus == TIMER_IDLE) {
-        startTimer(screen_off_time);
-        lastActivityTime = currentTime; // Первоначальный запуск
-    }
-
-    if (timerStatus == TIMER_FINISHED) {
-        // Сбросим таймер, если пользователь активен
-        startTimer(screen_off_time);
-        timerStatus = TIMER_IDLE;
-    }
-
-    if (inactiveTime >= screen_off_time / 2 && !screenDimmed) {
-        analogWrite(TFT_BL, 127);
-        screenDimmed = true;
-        screenOff = false;
-    }
-
-    if (inactiveTime >= screen_off_time && !screenOff) {
-        analogWrite(TFT_BL, 0);
-        screenOff = true;
-    }
+    batTimer = startTimer(5000, 1);
+    dimTimer = startTimer(screen_off_time / 2, 1);
 }
 
 void loop() {
     M5Cardputer.update();
-    checkScreenTimeout();
+    updateBatteryProcents();
     handleKeyboard();
     delay(50);
 }
