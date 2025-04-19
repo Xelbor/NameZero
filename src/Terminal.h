@@ -169,7 +169,7 @@ void handleCommands(String cmd) {
     }
 }
 
-void handleTerminalInput() {
+/*void handleTerminalInput() {
     bool cursorVisible = true;
     unsigned long lastCursorBlink = 0;
     const unsigned long cursorBlinkInterval = 700; // миллисекунд
@@ -286,4 +286,4 @@ void handleTerminalInput() {
 
         delay(50);
     }
-}
+}*/

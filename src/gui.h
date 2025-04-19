@@ -220,14 +220,14 @@ bool ble_server = false;
 bool ble_ios_spammer = false;
 bool valueEdit = false;
 int attackTime = 60;
-extern void drawWiFiNetworksMenu();
 extern void startAttack();
 extern void startSoftAP();
-extern void checkCPUsage();
+//extern void checkCPUsage();
 extern void ble_start_server();
 extern void disconnect_all_clients();
 extern void drawTerminal();
 extern void drawMicTest();
+extern void drawConnectionScreen();
 
 struct Bitmap {
   const unsigned char* data; // Указатель на массив с битмапом
@@ -320,7 +320,7 @@ struct MenuItem {
   int* value;
   const char* (*getParamValue)();
   bool switchable;
-  void (*action)();
+  std::function<void()> action;
 };
 
 MenuItem* networksMenu = nullptr;
@@ -336,17 +336,15 @@ MenuItem sniffersSubMenu[] {
   { "PMKID", &bitmap_icons[5], nullptr, nullptr, 0, nullptr, nullptr, nullptr, false, nullptr}
 };
 
+extern void drawWiFiNetworksMenu(MenuItem* selectedSubMenu, int subMenuItemCount, void (*action)());
+
 MenuItem deauthSubMenu[] {
-  { "Deauth Target", &bitmap_icons[7], nullptr, networksMenu, sizeof(&networksMenu) / sizeof(MenuItem), &wifi_deauther_spamer_target, nullptr, nullptr, false, &drawWiFiNetworksMenu },
+  { "Deauth Target", &bitmap_icons[7], nullptr, networksMenu, sizeof(networksMenu) / sizeof(MenuItem), &wifi_deauther_spamer_target, nullptr, nullptr, false, [](){ drawWiFiNetworksMenu(attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), nullptr); } },
   { "Deauth All", &bitmap_icons[7], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_deauther_spamer, nullptr, nullptr, false, &startAttack },
 };
 
-MenuItem staSubMenu[] {
-
-};
-
 MenuItem wifiSubMenu[] = {
-  { "Connect Wi-Fi", &bitmap_icons[10], nullptr, networksMenu, sizeof(&networksMenu) / sizeof(MenuItem), &wifi_connect_sta, nullptr, nullptr, false, &drawWiFiNetworksMenu },  // нужно будет добавить кнопку отключения
+  { "Connect Wi-Fi", &bitmap_icons[10], nullptr, networksMenu, sizeof(networksMenu) / sizeof(MenuItem), &wifi_connect_sta, nullptr, nullptr, false, [](){ drawWiFiNetworksMenu(nullptr, 0, drawConnectionScreen); }},  // нужно будет добавить кнопку отключения
   { "AP", &bitmap_icons[12], nullptr, nullptr, 0, &wifi_softAP, nullptr, [](){ return getBoolStatus(wifi_softAP); }, true, &startSoftAP },
   { "Deauth", &bitmap_icons[12], nullptr, deauthSubMenu, sizeof(deauthSubMenu) / sizeof(MenuItem), nullptr, nullptr, nullptr, false, nullptr },
   { "Beacon", &bitmap_icons[31], nullptr, attackSubMenu, sizeof(attackSubMenu) / sizeof(MenuItem), &wifi_beacon_spamer, nullptr, nullptr, false, nullptr},

@@ -24,7 +24,7 @@ extern "C" {
 
 #define TAG "NameZero"
 
-#define MAINCOLOR TFT_ORANGE
+#define MAINCOLOR ORANGE
 #define TFT_BL 38
 
 #define BATTERY_PIN 10
@@ -126,7 +126,7 @@ void startMenu() {
     M5Cardputer.Display.drawString(text, centerX, centerY);
 }
 
-void drawUpperMenu() {
+void drawUpperScreen() {
     M5Cardputer.Display.fillRect(0, 0, M5Cardputer.Display.width(), 25, BLACK);
     M5Cardputer.Display.setTextSize(1);
     int screenWidth = M5Cardputer.Display.width();
@@ -222,7 +222,7 @@ void drawMenu(MenuItem* menu, int menuSize) {
     int screenWidth = M5Cardputer.Display.width();
     int screenHeight = M5Cardputer.Display.height();
 
-    drawUpperMenu();
+    drawUpperScreen();
     M5Cardputer.Display.setTextColor(MAINCOLOR);
 
     int start_index;
@@ -314,26 +314,12 @@ void drawMenu(MenuItem* menu, int menuSize) {
 
 void drawAttackMenu() {
     appsMenu = true;
-    drawUpperMenu();
+    drawUpperScreen();
 
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawString("The Attack has been", 25, 109);
     M5Cardputer.Display.drawString("started", 100, 130);
     M5Cardputer.Display.drawBitmap(131, 150, image_EviSmile_bits, 18, 21, MAINCOLOR);
-}
-
-void drawTerminal() {
-    appsMenu = true;
-    M5Cardputer.Display.clear();
-    drawUpperMenu();
-    M5Cardputer.Display.setFont(&fonts::Font0);
-    M5Cardputer.Display.setTextSize(1);
-    printToTerminal("Press opt+q to quit or type \"exit\"", ORANGE);
-    printToTerminal("Type \"help\" to print help message", ORANGE);
-    M5Cardputer.Display.drawLine(0, 115, 240, 115, MAINCOLOR);
-    M5Cardputer.Display.drawString(dirPath + "$:", 5, 122);                     // directory
-
-    handleTerminalInput();
 }
 
 void drawMicTest() {
@@ -375,7 +361,7 @@ void drawMicTest() {
                     prev_y[x] = y;
                     prev_h[x] = h;
 
-                    M5Cardputer.Display.writeFastVLine(x, prev_y[x], prev_h[x], TFT_ORANGE);
+                    M5Cardputer.Display.writeFastVLine(x, prev_y[x], prev_h[x], MAINCOLOR);
                 }
 
                 M5Cardputer.Display.display();
@@ -387,7 +373,152 @@ void drawMicTest() {
     }
 }
 
-void drawWiFiNetworksMenu() {
+void handleKeyboardInput() {
+    bool cursorVisible = true;
+    unsigned long lastCursorBlink = 0;
+    const unsigned long cursorBlinkInterval = 700; // миллисекунд
+    int cursorPos = 0;
+    unsigned long currentTime = millis();
+    static unsigned long lastScrollTime = 0;
+    static unsigned long scrollDelay = 0;
+    const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
+    const unsigned long SCROLL_REPEAT_DELAY = 50;  // Скорость автоповтора
+    if (M5Cardputer.Keyboard.isChange()) {
+
+    
+    if (M5Cardputer.Keyboard.isPressed()) {
+        Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+
+        // Проверяем, нажаты ли служебные клавиши
+        bool hasModifierKey = status.ctrl || status.opt || status.alt || status.fn;
+        bool hasCharInput = false;
+
+        // Проверяем, есть ли вводимые символы
+        for (auto i : status.word) {
+            if (i != '\0') {
+                hasCharInput = true;
+                break;
+            }
+        }
+
+        if (currentTime - lastScrollTime >= scrollDelay) {
+            if (!hasCharInput && hasModifierKey) { 
+                scrollDelay = 0;
+            }
+
+            for (auto i : status.word) {
+                if (status.fn && (i == ',' || i == '/')) {
+                    continue;
+                }
+                cmd = cmd.substring(0, cursorPos) + i + cmd.substring(cursorPos);
+                cursorPos++;
+            }
+
+            if (status.fn) {
+                for (auto k : status.word) {
+                    if (k == ',' && cursorPos > 0) {
+                        cursorPos--;
+                    } else if (k == '/' && cursorPos < cmd.length()) {
+                        cursorPos++;
+                    }
+                }
+            }
+
+            if (status.opt) {
+                for (auto k : status.word) {
+                  if (k == 'q') {
+                    appsMenu = false;
+                    isTerminal = false;
+                    return;
+                  }
+                }
+            }
+
+            if (status.del) {
+                cmd.remove(cmd.length() - 1);
+                cursorPos--;
+            }
+
+            if (status.enter && isTerminal) {
+                M5Cardputer.Display.fillRect(0, M5Cardputer.Display.height() - 18, M5Cardputer.Display.width(), 18, BLACK);
+                M5Cardputer.Display.drawString(dirPath + usr, 5, 122);
+                printToTerminal(dirPath + usr + cmd, ORANGE);
+                handleCommands(cmd);
+                cmd.remove(0, 2);
+                cmd = "";
+            }
+
+            if (!isTerminal) {
+                isTerminal = true;
+            }
+
+            int promptWidth = M5Cardputer.Display.textWidth(dirPath + usr);
+            String beforeCursor = cmd.substring(0, cursorPos);
+            String afterCursor = cmd.substring(cursorPos);
+            M5Cardputer.Display.drawString(beforeCursor + afterCursor, 5 + promptWidth, M5Cardputer.Display.height() - 14);
+            M5Cardputer.Display.fillRect(promptWidth, M5Cardputer.Display.height() - 18, M5Cardputer.Display.width(), 25, BLACK);
+            M5Cardputer.Display.drawString(cmd, 5 + promptWidth, M5Cardputer.Display.height() - 14);
+                
+            lastScrollTime = currentTime;
+            scrollDelay = (scrollDelay == 0) ? SCROLL_START_DELAY : SCROLL_REPEAT_DELAY;
+        }}
+    } else {
+        scrollDelay = 0; // Сброс задержки, если клавиша отпущена
+    }
+
+    // Рисуем мигающий курсор
+    unsigned long now = millis();
+    if (now - lastCursorBlink >= cursorBlinkInterval) {
+        cursorVisible = !cursorVisible;
+        lastCursorBlink = now;
+
+        int promptWidth = M5Cardputer.Display.textWidth(dirPath + usr);
+        int cmdWidth = M5Cardputer.Display.textWidth(cmd.substring(0, cursorPos));
+
+        int cursorX = 5 + promptWidth + cmdWidth;
+        int cursorY = M5Cardputer.Display.height() - 16;
+
+        // Стираем старый курсор
+        M5Cardputer.Display.fillRect(cursorX, cursorY, 8, 12, BLACK);
+
+        if (cursorVisible) {
+            // Нарисовать квадрат (курсор)
+            M5Cardputer.Display.fillRect(cursorX, cursorY, 8, 12, MAINCOLOR);
+        }
+    }
+    delay(50);
+}
+
+void drawTerminal() {
+    M5Cardputer.Display.clear();
+    drawUpperScreen();
+    M5Cardputer.Display.setFont(&fonts::Font0);
+    M5Cardputer.Display.setTextSize(1);
+    printToTerminal("Press opt+q to quit or type \"exit\"", ORANGE);
+    printToTerminal("Type \"help\" to print help message", ORANGE);
+    M5Cardputer.Display.drawLine(0, 115, 240, 115, MAINCOLOR);
+    M5Cardputer.Display.drawString(dirPath + "$:", 5, 122);                     // directory
+
+    //handleTerminalInput();
+    while(appsMenu) {
+        handleKeyboardInput();
+    }
+}
+
+void drawConnectionScreen() {
+    appsMenu = true;
+    M5Cardputer.Display.clear();
+    drawUpperScreen();
+    M5Cardputer.Display.setFont(&fonts::Font0);
+    M5Cardputer.Display.drawString("Eneter a password:", 5, 34);
+    String data = "";
+    while(appsMenu) {
+        handleKeyboardInput();
+    }
+    //M5Cardputer.Display.drawString("31470197", 114, 34);
+}
+
+void drawWiFiNetworksMenu(MenuItem* selectedSubMenu, int subMenuItemCount, void (*action)()) {
     M5Cardputer.Display.fillRect(0, 26, 240, 109, BLACK);
     M5Cardputer.Display.setTextFont(1);
     M5Cardputer.Display.setTextSize(2);
@@ -404,20 +535,19 @@ void drawWiFiNetworksMenu() {
     // Создаем новое меню
     networksMenu = new MenuItem[wifi_ap_count];
 
-    MenuItem* selectedSubMenu = wifi_connect_sta ? nullptr : attackSubMenu;
-
     for (int i = 0; i < wifi_ap_count; i++) {
         networksMenu[i].name = wifi_aps[i].ssid;
         networksMenu[i].icon = get_wifi_icon(wifi_aps[i].rssi);
         networksMenu[i].subItems = selectedSubMenu;
-        networksMenu[i].subItemCount = 2;
+        networksMenu[i].subItemCount = subMenuItemCount;
+        networksMenu[i].action = action;
+    
         networksMenu[i].trigger = nullptr;
         networksMenu[i].value = nullptr;
         networksMenu[i].getParamValue = nullptr;
         networksMenu[i].switchable = false;
-        networksMenu[i].action = nullptr;
     }
-
+    
     parentMenu = currentMenu;
     parentSelected = item_selected;
     parentMenuSize = currentMenuSize;
@@ -579,7 +709,7 @@ void handleKeyboard() {
                 wifi_beacon_spamer = false;
                 appsMenu = false;
                 attackIsRunning = false;
-                drawUpperMenu();
+                drawUpperScreen();
             } else {
                 currentMenu = mainMenuItems;
                 currentMenuSize = NUM_ITEMS;
@@ -596,35 +726,6 @@ void handleKeyboard() {
         needsRedraw = false;
     }
 }
-
-/*
-void getResourceUsage(float *cpu_usage, float *ram_usage) {
-    static int64_t last_time = esp_timer_get_time();
-    
-    uint32_t free_heap = esp_get_free_heap_size();
-    uint32_t total_heap = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
-    *ram_usage = 100.0f * (1.0f - ((float)free_heap / (float)total_heap));
-    
-    int64_t start_idle_time = esp_timer_get_time();
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    int64_t end_idle_time = esp_timer_get_time();
-    
-    int64_t idle_time = end_idle_time - start_idle_time;
-    int64_t elapsed_time = esp_timer_get_time() - last_time;
-    
-    *cpu_usage = 100.0f * (1.0f - ((float)idle_time / (float)elapsed_time));
-    last_time = esp_timer_get_time();
-}
-
-void resourceMonitor(void *parameter) {
-    float cpu_usage, ram_usage;
-    while (true) {
-        getResourceUsage(&cpu_usage, &ram_usage);
-        printf("CPU Usage: %.2f%%\n", cpu_usage);
-        printf("RAM Usage: %.2f%%\n", ram_usage);
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
-}*/
 
 void setup() {
     Serial.begin(115200);
@@ -673,7 +774,7 @@ void setup() {
 
     // Выводим страницы
     M5Cardputer.Display.clear();
-    drawUpperMenu();
+    drawUpperScreen();
     drawMainMenu();
     batTimer = startTimer(5000, 1);
     dimTimer = startTimer(screen_off_time / 2, 1);
