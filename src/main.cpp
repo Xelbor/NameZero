@@ -373,7 +373,7 @@ void drawMicTest() {
     }
 }
 
-void handleKeyboardInput() {
+/*void handleKeyboardInput() {
     bool cursorVisible = true;
     unsigned long lastCursorBlink = 0;
     const unsigned long cursorBlinkInterval = 700; // миллисекунд
@@ -382,10 +382,7 @@ void handleKeyboardInput() {
     static unsigned long lastScrollTime = 0;
     static unsigned long scrollDelay = 0;
     const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
-    const unsigned long SCROLL_REPEAT_DELAY = 50;  // Скорость автоповтора
-    if (M5Cardputer.Keyboard.isChange()) {
-
-    
+    const unsigned long SCROLL_REPEAT_DELAY = 50;  // Скорость автоповтора    
     if (M5Cardputer.Keyboard.isPressed()) {
         Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
 
@@ -448,10 +445,6 @@ void handleKeyboardInput() {
                 cmd = "";
             }
 
-            if (!isTerminal) {
-                isTerminal = true;
-            }
-
             int promptWidth = M5Cardputer.Display.textWidth(dirPath + usr);
             String beforeCursor = cmd.substring(0, cursorPos);
             String afterCursor = cmd.substring(cursorPos);
@@ -461,7 +454,7 @@ void handleKeyboardInput() {
                 
             lastScrollTime = currentTime;
             scrollDelay = (scrollDelay == 0) ? SCROLL_START_DELAY : SCROLL_REPEAT_DELAY;
-        }}
+        }
     } else {
         scrollDelay = 0; // Сброс задержки, если клавиша отпущена
     }
@@ -487,7 +480,7 @@ void handleKeyboardInput() {
         }
     }
     delay(50);
-}
+}*/
 
 void drawTerminal() {
     M5Cardputer.Display.clear();
@@ -499,10 +492,7 @@ void drawTerminal() {
     M5Cardputer.Display.drawLine(0, 115, 240, 115, MAINCOLOR);
     M5Cardputer.Display.drawString(dirPath + "$:", 5, 122);                     // directory
 
-    //handleTerminalInput();
-    while(appsMenu) {
-        handleKeyboardInput();
-    }
+    handleTerminalInput();
 }
 
 void drawConnectionScreen() {
@@ -512,9 +502,6 @@ void drawConnectionScreen() {
     M5Cardputer.Display.setFont(&fonts::Font0);
     M5Cardputer.Display.drawString("Eneter a password:", 5, 34);
     String data = "";
-    while(appsMenu) {
-        handleKeyboardInput();
-    }
     //M5Cardputer.Display.drawString("31470197", 114, 34);
 }
 
