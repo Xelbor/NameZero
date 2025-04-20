@@ -16,7 +16,6 @@ std::vector<ColoredLine> terminalHistory;
 
 String dirPath = "/";
 String usr = "$: ";
-String cmd = "";
 
 bool isTerminal = false;
 bool appsMenu = false;
@@ -169,18 +168,103 @@ void handleCommands(String cmd) {
     }
 }
 
-void handleTerminalInput() {
+String handleInputKeyboard() {
+    static String data = "";
+    bool cursorVisible = true;
+    static int cursorPos = 0;
+    unsigned long lastCursorBlink = 0;
+    const unsigned long cursorBlinkInterval = 700; // миллисекунд
+    const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
+    const unsigned long SCROLL_REPEAT_DELAY = 50;  // Скорость автоповтора
+    unsigned long currentTime = millis();
+    static unsigned long lastScrollTime = 0;
+    static unsigned long scrollDelay = 0;
+
+    M5Cardputer.update();
+    if (M5Cardputer.Keyboard.isPressed()) {
+        Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+
+        bool hasModifierKey = status.ctrl || status.opt || status.alt || status.fn;
+        bool hasCharInput = false;
+
+        for (auto i : status.word) {
+            if (i != '\0') {
+                hasCharInput = true;
+                break;
+            }
+        }
+
+        if (currentTime - lastScrollTime >= scrollDelay) {
+            if (!hasCharInput && hasModifierKey) { 
+                scrollDelay = 0;
+            }
+
+            for (auto i : status.word) {
+                if (status.fn && (i == ',' || i == '/')) {
+                    continue;
+                }
+                data = data.substring(0, cursorPos) + i + data.substring(cursorPos);
+                cursorPos++;
+            }
+
+            if (status.fn) {
+                for (auto k : status.word) {
+                    if (k == ',' && cursorPos > 0) {
+                        cursorPos--;
+                    } else if (k == '/' && cursorPos < data.length()) {
+                        cursorPos++;
+                    }
+                }
+            }
+
+            if (status.opt) {
+                if (M5Cardputer.BtnA.wasPressed()) {
+                    appsMenu = false;
+                    isTerminal = false;
+                }
+                for (auto k : status.word) {
+                  if (k == 'q') {
+                    appsMenu = false;
+                    isTerminal = false;
+                  }
+                }
+            }
+
+            if (status.del) {
+                data.remove(data.length() - 1);
+                cursorPos--;
+            }
+
+            if (status.enter) {
+                String result = data;
+                data = "";
+                return result;
+            }
+
+            lastScrollTime = currentTime;
+            scrollDelay = (scrollDelay == 0) ? SCROLL_START_DELAY : SCROLL_REPEAT_DELAY;
+        }
+    } else {
+        scrollDelay = 0;
+    }
+
+    return data;
+}
+
+
+
+/*void handleTerminalInput() {
     bool cursorVisible = true;
     unsigned long lastCursorBlink = 0;
     const unsigned long cursorBlinkInterval = 700; // миллисекунд
+    const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
+    const unsigned long SCROLL_REPEAT_DELAY = 50;  // Скорость автоповтора
     int cursorPos = 0;
     while (appsMenu) {
         M5Cardputer.update();
         unsigned long currentTime = millis();
         static unsigned long lastScrollTime = 0;
         static unsigned long scrollDelay = 0;
-        const unsigned long SCROLL_START_DELAY = 300;  // Задержка перед началом автоповтора
-        const unsigned long SCROLL_REPEAT_DELAY = 50;  // Скорость автоповтора
 
         if (M5Cardputer.Keyboard.isPressed()) {
             Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
@@ -283,7 +367,6 @@ void handleTerminalInput() {
                 M5Cardputer.Display.fillRect(cursorX, cursorY, 8, 12, TFT_ORANGE);
             }
         }
-
         delay(50);
     }
-}
+}*/

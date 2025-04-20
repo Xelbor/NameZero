@@ -491,8 +491,20 @@ void drawTerminal() {
     printToTerminal("Type \"help\" to print help message", ORANGE);
     M5Cardputer.Display.drawLine(0, 115, 240, 115, MAINCOLOR);
     M5Cardputer.Display.drawString(dirPath + "$:", 5, 122);                     // directory
+    isTerminal = true;
 
-    handleTerminalInput();
+    while(appsMenu) {
+        static String lastInput = "";
+        String currentInput = handleInputKeyboard();
+
+        if (currentInput != lastInput) {
+            lastInput = currentInput;
+    
+            //M5Cardputer.Display.fillRect(112, 32, 127, 10, BLACK);
+            //M5Cardputer.Display.drawString(currentInput, 114, 34);
+        }
+        delay(50);
+    }
 }
 
 void drawConnectionScreen() {
@@ -501,8 +513,18 @@ void drawConnectionScreen() {
     drawUpperScreen();
     M5Cardputer.Display.setFont(&fonts::Font0);
     M5Cardputer.Display.drawString("Eneter a password:", 5, 34);
-    String data = "";
-    //M5Cardputer.Display.drawString("31470197", 114, 34);
+    while(appsMenu) {
+        static String lastInput = "";
+        String currentInput = handleInputKeyboard();
+
+        if (currentInput != lastInput) {
+            lastInput = currentInput;
+    
+            M5Cardputer.Display.fillRect(112, 32, 127, 10, BLACK);
+            M5Cardputer.Display.drawString(currentInput, 114, 34);
+        }
+        delay(50);
+    }
 }
 
 void drawWiFiNetworksMenu(MenuItem* selectedSubMenu, int subMenuItemCount, void (*action)()) {
