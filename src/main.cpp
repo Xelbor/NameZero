@@ -74,24 +74,10 @@ Timer* startMenuTimer;
 Timer* batTimer;
 Timer* dimTimer;
 
-float readBatteryVoltage() {
-    int raw = analogRead(BATTERY_PIN);
-    float voltage = (raw / 4095.0) * 3.3;  // 12-бит АЦП на ESP32
-    return voltage * VOLTAGE_DIVIDER_RATIO;
-  }
-  
-int getBatteryPercent() {
-    float voltage = readBatteryVoltage();
-    int percent = (voltage - BATTERY_MIN_VOLTAGE) / 
-                  (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100;
-    percent = constrain(percent, 0, 100);
-    return percent;
-}
-
 void updateBatteryProcents() {
     if (batTimer->status == TIMER_FINISHED)
     {
-        int percent = getBatteryPercent();
+        int percent = M5.Power.getBatteryLevel();
 
         // Очищаем область батареи
         M5Cardputer.Display.fillRect(186, 8, 22, 12, BLACK);
@@ -136,7 +122,7 @@ void drawUpperScreen() {
     M5Cardputer.Display.drawString("NameZero", screenWidth * 0.03, screenHeight * 0.03);
 
     // Заряд батареи
-    int percent = getBatteryPercent();
+    int percent = M5.Power.getBatteryLevel();
     int fillWidth = map(percent, 0, 100, 0, 17);
 
     M5Cardputer.Display.drawBitmap(210, 7, image_battery_empty_bits, 24, 16, MAINCOLOR);
