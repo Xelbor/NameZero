@@ -9,7 +9,11 @@ I publish the `.bin` file when firmware been is ready to use
 At this point in time, the firmware has only been tested on CardPuter. In subsequent releases, separate firmware files for other devices will be introduced.
 
 # Communication
-Also, if have a desire to help and have other devices from M5Stack or Lilygo(t-embed and other), then I ask you help me with testing firmware(xelbor45hail@gmail.com). Thanks!
+Also, if you want to help me with the project (for example, you also want to write a code for any module/improvement), then please write to me by mail:
+xelbor45hail@gmail.com (if you write to Gmail I can answer for a long time)
+xelbor45hail@mail.ru (here I will answer almost immediately)
+
+If you have other devices from M5 or Lilygo, then also write to me by mail if you are ready to cooperate
 
 # Screenshots
 ![1](https://github.com/user-attachments/assets/1198b21f-25d4-4d41-8ae1-8a2888bfa870)
